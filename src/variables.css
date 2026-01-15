@@ -1,0 +1,146 @@
+/* 颜色变量定义 */
+
+/* 基础颜色 */
+:root {
+  /* 主色调 - 亮色主题 */
+  --color-primary: #667eea;
+  --color-primary-dark: #764ba2;
+  --color-primary-light: #8b9eff;
+
+  /* 背景色 - 亮色主题 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0e0e0;
+
+  /* 文字色 - 亮色主题 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-inverse: #ffffff;
+
+  /* 边框色 - 亮色主题 */
+  --border-color: #e0e0e0;
+  --border-color-light: #f0f0f0;
+  --border-color-dark: #cccccc;
+
+  /* 阴影 - 亮色主题 */
+  --shadow-sm: rgba(0, 0, 0, 0.05);
+  --shadow-md: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  --shadow-xl: rgba(0, 0, 0, 0.3);
+  --shadow-primary: rgba(102, 126, 234, 0.4);
+
+  /* 渐变 - 亮色主题 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-bg-light: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  /* 半透明背景 */
+  --bg-overlay-light: rgba(255, 255, 255, 0.25);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.1);
+
+  /* 标题背景 - 更深的半透明 */
+  --bg-header-light: rgba(255, 255, 255, 0.4);
+  --bg-header-dark: rgba(0, 0, 0, 0.5);
+
+  /* 标题文字阴影 - 增强对比度 */
+  --text-shadow-header: 0 3px 12px rgba(0, 0, 0, 0.7),
+    0 2px 6px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --text-shadow-header-dark: 0 3px 12px rgba(0, 0, 0, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.6);
+
+  /* 按钮颜色 */
+  --button-bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --button-bg-hover: rgba(102, 126, 234, 0.4);
+
+  /* 状态颜色 */
+  --color-success: #4caf50;
+  --color-error: #f44336;
+  --color-warning: #ff9800;
+  --color-info: #2196f3;
+
+  /* 禁用状态 */
+  --opacity-disabled: 0.6;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+}
+
+/* 暗色主题 */
+[data-theme='dark'] {
+  /* 主色调 - 暗色主题 */
+  --color-primary: #8b9eff;
+  --color-primary-dark: #4a5568;
+  --color-primary-light: #a5b4fc;
+
+  /* 背景色 - 暗色主题 */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #404040;
+
+  /* 文字色 - 暗色主题 */
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #808080;
+  --text-inverse: #333333;
+
+  /* 边框色 - 暗色主题 */
+  --border-color: #404040;
+  --border-color-light: #2d2d2d;
+  --border-color-dark: #555555;
+
+  /* 阴影 - 暗色主题 */
+  --shadow-sm: rgba(0, 0, 0, 0.2);
+  --shadow-md: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.4);
+  --shadow-xl: rgba(0, 0, 0, 0.6);
+  --shadow-primary: rgba(0, 0, 0, 0.5);
+
+  /* 渐变 - 暗色主题 */
+  --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  --gradient-bg-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+
+  /* 半透明背景 */
+  --bg-overlay-light: rgba(255, 255, 255, 0.05);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.5);
+
+  /* 标题背景 - 更深的半透明 */
+  --bg-header-light: rgba(255, 255, 255, 0.1);
+  --bg-header-dark: rgba(0, 0, 0, 0.6);
+
+  /* 标题文字阴影 - 增强对比度 */
+  --text-shadow-header: 0 3px 12px rgba(0, 0, 0, 0.7),
+    0 2px 6px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --text-shadow-header-dark: 0 3px 12px rgba(0, 0, 0, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.6);
+
+  /* 按钮颜色 */
+  --button-bg-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  --button-bg-hover: rgba(0, 0, 0, 0.5);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+}

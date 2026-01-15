@@ -1,0 +1,30 @@
+.container {
+  padding: var(--spacing-md);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}

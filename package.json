@@ -1,0 +1,51 @@
+{
+  "name": "minimal-newtab",
+  "version": "0.0.1",
+  "author": "Jiangcheng <plutavian@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/AsukaCC/create-extension-react",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AsukaCC/create-extension-react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AsukaCC/create-extension-react/issues"
+  },
+  "type": "module",
+  "description": "Chrome Extension scaffold with React and Vite",
+  "keywords": [
+    "create-extension-react",
+    "chrome",
+    "chrome extension"
+  ],
+  "files": [
+    "scripts/",
+    "src/",
+    "vite-plugin-fix-extension.ts",
+    "vite.config.ts",
+    "tsconfig.json",
+    "tsconfig.node.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
+    "dayjs": "^1.11.19",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^9.2.0",
+    "redux-persist": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.4.3",
+    "vite": "^5.2.0"
+  }
+}

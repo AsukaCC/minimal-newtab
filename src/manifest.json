@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "React Extension",
+  "version": "1.0.0",
+  "description": "Chrome Extension built with React and Vite",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "React Extension"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}

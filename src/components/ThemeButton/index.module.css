@@ -1,0 +1,202 @@
+/* From Uiverse.io by Galahhad */
+.themeSwitch {
+  --toggleSize: 1rem;
+  --containerWidth: 5.625em;
+  --containerHeight: 2.5em;
+  --containerRadius: 6.25em;
+  --containerLightBg: #3d7eae;
+  --containerNightBg: #1d1f2c;
+  --circleContainerDiameter: 3.375em;
+  --sunMoonDiameter: 2.125em;
+  --sunBg: #ecca2f;
+  --moonBg: #c4c9d1;
+  --spotColor: #959db1;
+  --circleContainerOffset: calc(
+    (var(--circleContainerDiameter) - var(--containerHeight)) / 2 * -1
+  );
+  --starsColor: #fff;
+  --cloudsColor: #f3fdff;
+  --backCloudsColor: #aacadf;
+  --transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+  --circleTransition: 0.3s cubic-bezier(0, -0.02, 0.35, 1.17);
+}
+
+.themeSwitch,
+.themeSwitch *,
+.themeSwitch *::before,
+.themeSwitch *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: var(--toggleSize);
+}
+
+.themeSwitchContainer {
+  width: var(--containerWidth);
+  height: var(--containerHeight);
+  background-color: var(--containerLightBg);
+  border-radius: var(--containerRadius);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25),
+    0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+  transition: var(--transition);
+  position: relative;
+}
+
+.themeSwitchContainer::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset,
+    0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+  border-radius: var(--containerRadius);
+}
+
+.themeSwitchCheckbox {
+  display: none;
+}
+
+.themeSwitchCircleContainer {
+  width: var(--circleContainerDiameter);
+  height: var(--circleContainerDiameter);
+  background-color: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  left: var(--circleContainerOffset);
+  top: var(--circleContainerOffset);
+  border-radius: var(--containerRadius);
+  box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1),
+    inset 0 0 0 3.375em rgba(255, 255, 255, 0.1),
+    0 0 0 0.625em rgba(255, 255, 255, 0.1),
+    0 0 0 1.25em rgba(255, 255, 255, 0.1);
+  display: flex;
+  transition: var(--circleTransition);
+  pointer-events: none;
+}
+
+.themeSwitchSunMoonContainer {
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+  width: var(--sunMoonDiameter);
+  height: var(--sunMoonDiameter);
+  margin: auto;
+  border-radius: var(--containerRadius);
+  background-color: var(--sunBg);
+  box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset,
+    0em -0.062em 0.062em 0em #a1872a inset;
+  filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25))
+    drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.themeSwitchMoon {
+  transform: translateX(100%);
+  width: 100%;
+  height: 100%;
+  background-color: var(--moonBg);
+  border-radius: inherit;
+  box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset,
+    0em -0.062em 0.062em 0em #969696 inset;
+  transition: var(--transition);
+  position: relative;
+}
+
+.themeSwitchSpot {
+  position: absolute;
+  top: 0.75em;
+  left: 0.312em;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: var(--containerRadius);
+  background-color: var(--spotColor);
+  box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+}
+
+.themeSwitchSpot:nth-of-type(2) {
+  width: 0.375em;
+  height: 0.375em;
+  top: 0.937em;
+  left: 1.375em;
+}
+
+.themeSwitchSpot:nth-last-of-type(3) {
+  width: 0.25em;
+  height: 0.25em;
+  top: 0.312em;
+  left: 0.812em;
+}
+
+.themeSwitchClouds {
+  width: 1.25em;
+  height: 1.25em;
+  background-color: var(--cloudsColor);
+  border-radius: var(--containerRadius);
+  position: absolute;
+  bottom: -0.625em;
+  left: 0.312em;
+  box-shadow: 0.937em 0.312em var(--cloudsColor),
+    -0.312em -0.312em var(--backCloudsColor), 1.437em 0.375em var(--cloudsColor),
+    0.5em -0.125em var(--backCloudsColor), 2.187em 0 var(--cloudsColor),
+    1.25em -0.062em var(--backCloudsColor), 2.937em 0.312em var(--cloudsColor),
+    2em -0.312em var(--backCloudsColor), 3.625em -0.062em var(--cloudsColor),
+    2.625em 0 var(--backCloudsColor), 4.5em -0.312em var(--cloudsColor),
+    3.375em -0.437em var(--backCloudsColor),
+    4.625em -1.75em 0 0.437em var(--cloudsColor),
+    4em -0.625em var(--backCloudsColor),
+    4.125em -2.125em 0 0.437em var(--backCloudsColor);
+  transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+}
+
+.themeSwitchStarsContainer {
+  position: absolute;
+  color: var(--starsColor);
+  top: -100%;
+  left: 0.312em;
+  width: 2.75em;
+  height: auto;
+  transition: var(--transition);
+}
+
+/* actions */
+.themeSwitchCheckbox:checked + .themeSwitchContainer {
+  background-color: var(--containerNightBg);
+}
+
+.themeSwitchCheckbox:checked
+  + .themeSwitchContainer
+  .themeSwitchCircleContainer {
+  left: calc(
+    100% - var(--circleContainerOffset) - var(--circleContainerDiameter)
+  );
+}
+
+.themeSwitchCheckbox:checked
+  + .themeSwitchContainer
+  .themeSwitchCircleContainer:hover {
+  left: calc(
+    100% - var(--circleContainerOffset) - var(--circleContainerDiameter) -
+      0.187em
+  );
+}
+
+.themeSwitchCircleContainer:hover {
+  left: calc(var(--circleContainerOffset) + 0.187em);
+}
+
+.themeSwitchCheckbox:checked + .themeSwitchContainer .themeSwitchMoon {
+  transform: translate(0);
+}
+
+.themeSwitchCheckbox:checked + .themeSwitchContainer .themeSwitchClouds {
+  bottom: -4.062em;
+}
+
+.themeSwitchCheckbox:checked
+  + .themeSwitchContainer
+  .themeSwitchStarsContainer {
+  top: 50%;
+  transform: translateY(-50%);
+}

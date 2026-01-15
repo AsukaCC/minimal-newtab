@@ -1,0 +1,24 @@
+.newtabPage {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.themeButtonWrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  filter: drop-shadow(0 2px 4px var(--shadow-md));
+  transition: filter 0.3s ease;
+}
