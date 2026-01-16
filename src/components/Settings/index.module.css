@@ -1,0 +1,318 @@
+/* 设置按钮样式 */
+.settingsButton {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px var(--shadow-md);
+  color: var(--text-primary);
+  z-index: 1000;
+}
+
+.settingsButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-lg);
+}
+
+.settingsButton:active {
+  transform: translateY(0);
+}
+
+.settingsButton .settingsIcon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* 遮罩层 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 设置面板 */
+.settingsPanel {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: var(--bg-primary);
+  box-shadow: -2px 0 8px var(--shadow-lg);
+  z-index: 1000;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.settingsPanel.open {
+  right: 0;
+}
+
+/* 设置容器 */
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 设置面板头部 */
+.settingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.settingsTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 关闭按钮 */
+.closeButton {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-primary);
+  padding: 0;
+  outline: none;
+}
+
+.closeButton:hover {
+  background: var(--bg-tertiary);
+  transform: rotate(90deg);
+}
+
+.closeButton:active {
+  transform: rotate(90deg) scale(0.92);
+  background: var(--bg-tertiary);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 设置项列表区域 */
+.settingsSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.sectionDescription {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 设置项样式 */
+.settingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--bg-primary);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.settingItem:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settingLabel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.settingText {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settingDescription {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 主题色选择器 */
+.themeColorPicker {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.colorInput {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  outline: none;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput::-moz-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput:hover {
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.colorInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.colorPreview {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  .settingsPanel {
+    width: 100%;
+    right: -100%;
+  }
+
+  .settingsButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .settingsButton .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .settingsHeader {
+    padding: var(--spacing-md);
+  }
+
+  .settingsTitle {
+    font-size: 18px;
+  }
+
+  .settingsContainer {
+    gap: 8px;
+  }
+
+  .settingsHeader {
+    padding: var(--spacing-md);
+  }
+
+  .settingsSection {
+    gap: 8px;
+  }
+
+  .settingItem {
+    padding: var(--spacing-md);
+  }
+
+  .themeColorPicker {
+    gap: 8px;
+  }
+
+  .colorInput {
+    width: 40px;
+    height: 40px;
+  }
+
+  .colorPreview {
+    width: 28px;
+    height: 28px;
+  }
+}

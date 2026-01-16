@@ -51,6 +51,8 @@
   /* 按钮颜色 */
   --button-bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --button-bg-hover: rgba(102, 126, 234, 0.4);
+  /* 搜索按钮渐变 - 亮色主题：从亮到暗 */
+  --button-gradient-search: linear-gradient(135deg, #a5b4fc 0%, #8b9eff 50%, #667eea 100%);
 
   /* 状态颜色 */
   --color-success: #4caf50;
@@ -128,6 +130,8 @@
   /* 按钮颜色 */
   --button-bg-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   --button-bg-hover: rgba(0, 0, 0, 0.5);
+  /* 搜索按钮渐变 - 暗色主题：从亮到暗 */
+  --button-gradient-search: linear-gradient(135deg, #2d3748 0%, #1a1a2e 50%, #0f1419 100%);
 
   /* 圆角 */
   --radius-sm: 4px;

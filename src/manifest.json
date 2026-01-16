@@ -1,11 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "React Extension",
+  "name": "Minimal - New Tab",
   "version": "1.0.0",
-  "description": "Chrome Extension built with React and Vite",
+  "description": "A minimal new tab page with a search bar and settings",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "React Extension"
+    "default_title": "Minimal - New Tab"
+  },
+  "icons": {
+    "48": "favicon.png",
+    "128": "favicon.png"
   },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
@@ -15,19 +19,10 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ]
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
     }
   ],
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ]
+  "permissions": ["activeTab", "storage", "identity"],
+  "host_permissions": ["<all_urls>"]
 }

@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './index.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/redux';
-import { setChooseEngine } from '@/redux/slice/configSlice';
-import { SearchEngine } from '@/types';
+import type { RootState } from '../../store/store';
+import { setChooseEngine } from '../../store/configSlice';
+import type { SearchEngine } from '../../types.ts';
 
 const Search: React.FC = () => {
   const [searchContent, setSearchContent] = useState('');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const dispatch = useDispatch();
+  const enginesContainerRef = useRef<HTMLDivElement>(null);
+
+  const chooseEngine = useSelector(
+    (state: RootState) => state.config.chooseEngine
+  );
+  const isDirectLink = useSelector(
+    (state: RootState) => state.config.isDirectLink
+  );
 
   const initialEngines: SearchEngine[] = [
     {
@@ -63,13 +72,6 @@ const Search: React.FC = () => {
     },
   ];
 
-  const chooseEngine = useSelector(
-    (state: RootState) => state.config.chooseEngine
-  );
-  const isDirectLink = useSelector(
-    (state: RootState) => state.config.isDirectLink
-  );
-
   const currentEngine =
     initialEngines.find((engine) => engine.key === chooseEngine) ||
     initialEngines[0];
@@ -87,52 +89,99 @@ const Search: React.FC = () => {
     setIsMenuVisible((prev) => !prev);
   };
 
-  const closeMenu = () => {
-    setIsMenuVisible(false);
+  const handleClear = () => {
+    setSearchContent('');
   };
+
+  // 处理失去焦点时关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        enginesContainerRef.current &&
+        !enginesContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuVisible(false);
+      }
+    };
+
+    if (isMenuVisible) {
+      // 使用 setTimeout 确保点击事件先处理完
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 0);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuVisible]);
 
   return (
     <div className={styles.searchContainer}>
       {/* 搜索引擎选择器 */}
-      <div className={styles.enginesContainer}>
+      <div className={styles.enginesContainer} ref={enginesContainerRef}>
         <div className={styles.currentEngine} onClick={toggleMenu}>
-          <img
-            src={currentEngine!.favicon}
-            alt={`${currentEngine!.name} favicon`}
-          />
+          {currentEngine!.key === 'default' ? (
+            <svg className={`icon ${styles.defaultIcon}`} aria-hidden="true">
+              <use xlinkHref="#icon-sousuo"></use>
+            </svg>
+          ) : (
+            <img
+              src={currentEngine!.favicon}
+              alt={`${currentEngine!.name} favicon`}
+            />
+          )}
         </div>
 
         {isMenuVisible && (
-          <>
-            <div className={styles.overlay} onClick={closeMenu}></div>
-            <div className={styles.enginesList}>
-              {initialEngines.map((engine) => (
-                <div
-                  key={engine.key}
-                  className={styles.engineItem}
-                  onClick={() => handleEngineChange(engine.key)}>
+          <div className={styles.enginesList}>
+            {initialEngines.map((engine) => (
+              <div
+                key={engine.key}
+                className={`${styles.engineItem} ${
+                  engine.key === chooseEngine ? styles.selected : ''
+                }`}
+                onClick={() => handleEngineChange(engine.key)}>
+                {engine.key === 'default' ? (
+                  <svg
+                    className={`icon ${styles.defaultIcon}`}
+                    aria-hidden="true">
+                    <use xlinkHref="#icon-sousuo"></use>
+                  </svg>
+                ) : (
                   <img src={engine.favicon} alt={`${engine.name} favicon`} />
-                  <span>{engine.name}</span>
-                </div>
-              ))}
-            </div>
-          </>
+                )}
+                <span>{engine.name}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* 搜索输入框和按钮 */}
-      <input
-        className={styles.searchInput}
-        type="text"
-        placeholder="搜索..."
-        value={searchContent}
-        onChange={(e) => setSearchContent(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && search()}
-      />
-      <div className={styles.searchButton} onClick={search}>
-        <svg className={`icon ${styles.searchIcon}`} aria-hidden="true">
-          <use xlinkHref="#icon-sousuo"></use>
-        </svg>
+      {/* 搜索输入框和清空按钮 */}
+      <div className={styles.inputWrapper}>
+        <input
+          id="searchInput"
+          className={styles.searchInput}
+          type="text"
+          placeholder="搜索..."
+          value={searchContent}
+          onChange={(e) => setSearchContent(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && search()}
+          onFocus={() => setIsInputFocused(true)}
+          onBlur={() => setIsInputFocused(false)}
+        />
+        {searchContent && (
+          <button
+            className={styles.clearButton}
+            onClick={handleClear}
+            aria-label="清空搜索内容"
+            type="button">
+            <svg className={`icon ${styles.clearIcon}`} aria-hidden="true">
+              <use xlinkHref="#icon-guanbi"></use>
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );

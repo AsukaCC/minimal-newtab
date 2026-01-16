@@ -29,3 +29,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Popup 页面特定样式 */
+body.popup {
+  width: 500px;
+  min-width: 500px;
+  min-height: 500px;
+}
+
+/* iconfont */
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}

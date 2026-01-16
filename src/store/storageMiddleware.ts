@@ -37,6 +37,7 @@ export const storageMiddleware: Middleware<{}, RootState> =
           chrome.storage.local.set(
             {
               theme: configToSave.theme,
+              themeColor: configToSave.themeColor,
               updatedAt: configToSave.updatedAt,
               // 可以添加其他配置项
               // language: configToSave.language,
@@ -54,6 +55,9 @@ export const storageMiddleware: Middleware<{}, RootState> =
           // 同时同步到 localStorage（用于快速读取）
           try {
             localStorage.setItem('theme', JSON.stringify(configToSave.theme));
+            if (configToSave.themeColor) {
+              localStorage.setItem('themeColor', configToSave.themeColor);
+            }
             localStorage.setItem(
               'updatedAt',
               JSON.stringify(configToSave.updatedAt)
