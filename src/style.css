@@ -1,0 +1,56 @@
+/* 导入颜色变量 */
+@import './variables.css';
+/* 导入公共样式 */
+@import './styles/common.css';
+
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* HTML 根元素样式 */
+html {
+  color-scheme: light dark;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Popup 页面特定样式 */
+body.popup {
+  width: 500px;
+  min-width: 500px;
+  min-height: 500px;
+}
+
+/* iconfont */
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}

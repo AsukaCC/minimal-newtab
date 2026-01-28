@@ -1,0 +1,656 @@
+/* 遮罩层 - 参考公共样式 common-overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+  animation: fadeIn 0.3s ease;
+}
+
+/* 弹窗 - 参考公共样式 common-modal */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 640px;
+  max-height: 85vh;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 弹窗头部 - 参考公共样式 common-modal-header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  background: var(--bg-primary);
+}
+
+/* 弹窗标题 - 参考公共样式 common-modal-title */
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* 关闭按钮 - 参考公共样式 common-button-close */
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  padding: 0;
+}
+
+.closeButton:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+.closeButton:active {
+  transform: rotate(90deg) scale(0.92);
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
+
+/* 弹窗内容 - 参考公共样式 common-modal-content */
+.modalContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.modalContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color-dark);
+}
+
+.syncSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.allActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  width: 100%;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.allActionsRow::-webkit-scrollbar {
+  height: 4px;
+}
+
+.allActionsRow::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.allActionsRow::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.allActionsRow::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color-dark);
+}
+
+.syncStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.statusDotIdle {
+  background: var(--color-success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDotNotSynced {
+  background: var(--text-tertiary, #999);
+  opacity: 0.6;
+}
+
+.statusDotSyncing {
+  background: var(--color-primary);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.statusDotSuccess {
+  background: var(--color-success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDotError {
+  background: var(--color-error);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* pulse 动画 - 仅在此组件使用 */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* spin 动画已定义在公共样式 common.css 中 */
+
+.error {
+  padding: 10px 14px;
+  background-color: rgba(244, 67, 54, 0.08);
+  color: var(--color-error);
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* 同步按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="primary" size="small" */
+.syncButton {
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+.syncButton:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-sm);
+}
+
+.syncButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.syncButton svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Spinner 使用公共样式，通过全局类名引用 */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.historyTitleWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.historyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 刷新按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="primary" iconOnly size="small" className="refreshButton" */
+.refreshButton {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color-dark);
+  transform: rotate(180deg);
+}
+
+.refreshButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+.emptyHistory {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-tertiary);
+  font-size: 14px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px dashed var(--border-color);
+}
+
+.historyList {
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  padding-bottom: 4px;
+}
+
+.historyList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.historyList::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.historyList::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.historyList::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color-dark);
+}
+
+.historyItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 12px;
+}
+
+.historyItem:hover {
+  border-color: var(--border-color-dark);
+  background: var(--bg-primary);
+}
+
+.historyItemCurrent {
+  border-color: var(--color-primary);
+  background: var(--bg-primary);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15), 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.historyItemCurrent:hover {
+  border-color: var(--color-primary);
+  background: var(--bg-primary);
+}
+
+.historyInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.historyItem .historyActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.historyType {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.currentBadge {
+  font-size: 10px;
+  padding: 2px 8px;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.historyTime {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.historyDetails {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* 恢复按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="primary" size="small" */
+.restoreButton {
+  padding: 6px 14px;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 32px;
+  min-width: 70px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.restoreButton:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.restoreButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.restoreButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 删除按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="danger" size="small" */
+.deleteButton {
+  padding: 6px 14px;
+  background: rgba(244, 67, 54, 0.08);
+  color: var(--color-error);
+  border: 1px solid rgba(244, 67, 54, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 32px;
+  min-width: 70px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.2);
+}
+
+.deleteButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.deleteButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.restoreButton svg,
+.deleteButton svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* 导出/导入按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="info" size="small" */
+.exportButton,
+.importButton {
+  padding: 6px 12px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+.exportButton svg,
+.importButton svg,
+.clearButton svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.exportButton:hover:not(:disabled),
+.importButton:hover:not(:disabled) {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color-dark);
+}
+
+.exportButton:disabled,
+.importButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* 清空按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="danger" size="small" */
+.clearButton {
+  padding: 6px 12px;
+  background: rgba(244, 67, 54, 0.08);
+  color: var(--color-error);
+  border: 1px solid rgba(244, 67, 54, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+.clearButton:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.5);
+  transform: translateY(-1px);
+}
+
+.clearButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalContent {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .syncSection {
+    padding: 14px;
+  }
+
+  .allActionsRow {
+    gap: 6px;
+  }
+
+  .syncButton,
+  .exportButton,
+  .importButton,
+  .clearButton {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .historyList {
+    max-height: 300px;
+    gap: 8px;
+  }
+
+  .historyItem {
+    padding: 10px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .historyItem .historyActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .restoreButton,
+  .deleteButton {
+    flex: 1;
+    min-width: 0;
+  }
+}

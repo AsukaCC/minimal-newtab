@@ -1,0 +1,117 @@
+/* 颜色变量定义 */
+
+/* 基础颜色 */
+:root {
+  /* 主色调 - 亮色主题 */
+  --color-primary: #667eea;
+  --color-primary-dark: #764ba2;
+
+  /* 背景色 - 亮色主题 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0e0e0;
+
+  /* 文字色 - 亮色主题 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-inverse: #ffffff;
+
+  /* 边框色 - 亮色主题（基于背景色，确保对比度） */
+  --border-color: rgba(0, 0, 0, 0.12);
+  --border-color-light: rgba(0, 0, 0, 0.06);
+  --border-color-dark: rgba(0, 0, 0, 0.2);
+
+  /* 阴影 - 亮色主题（黑色半透明，在浅色背景上形成对比） */
+  --shadow-sm: rgba(0, 0, 0, 0.05);
+  --shadow-md: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  --shadow-primary: rgba(102, 126, 234, 0.4);
+
+  /* 渐变 - 亮色主题 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  /* 动态主题色按钮变量（通过 JavaScript 动态设置） */
+  --theme-color: #667eea;
+  --button-primary-bg: var(--theme-color);
+  --button-primary-text: #ffffff;
+  --button-primary-hover-bg: var(--color-primary-dark);
+  --button-primary-hover-text: #ffffff;
+  --button-shadow: rgba(102, 126, 234, 0.3);
+  --button-hover-shadow: rgba(102, 126, 234, 0.4);
+
+  /* 状态颜色 */
+  --color-success: #4caf50;
+  --color-error: #f44336;
+  --color-info: #2196f3;
+
+  /* 禁用状态 */
+  --opacity-disabled: 0.6;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+/* 暗色主题 */
+[data-theme='dark'] {
+  /* 主色调 - 暗色主题 */
+  --color-primary: #8b9eff;
+  --color-primary-dark: #4a5568;
+
+  /* 背景色 - 暗色主题 */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #404040;
+
+  /* 文字色 - 暗色主题 */
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #808080;
+  --text-inverse: #333333;
+
+  /* 边框色 - 暗色主题（基于背景色，使用白色半透明确保对比度） */
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-color-light: rgba(255, 255, 255, 0.06);
+  --border-color-dark: rgba(255, 255, 255, 0.2);
+
+  /* 阴影 - 暗色主题（使用白色半透明或更亮的颜色，在深色背景上形成对比） */
+  --shadow-sm: rgba(0, 0, 0, 0.3);
+  --shadow-md: rgba(0, 0, 0, 0.4);
+  --shadow-lg: rgba(0, 0, 0, 0.5);
+  --shadow-primary: rgba(139, 158, 255, 0.3);
+
+  /* 渐变 - 暗色主题 */
+  --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+
+  /* 动态主题色按钮变量（通过 JavaScript 动态设置） */
+  --theme-color: #8b9eff;
+  --button-primary-bg: var(--theme-color);
+  --button-primary-text: #ffffff;
+  --button-primary-hover-bg: var(--color-primary-dark);
+  --button-primary-hover-text: #ffffff;
+  --button-shadow: rgba(139, 158, 255, 0.3);
+  --button-hover-shadow: rgba(139, 158, 255, 0.4);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}

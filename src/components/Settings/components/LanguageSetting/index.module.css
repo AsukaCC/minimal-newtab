@@ -1,0 +1,48 @@
+.settingItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  background: var(--bg-primary);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+/* 当设置项包含 Select 时，当下拉菜单打开时提高 z-index 避免被遮挡 */
+.settingItemWithSelect.selectOpen {
+  z-index: 100;
+}
+
+.settingItem:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settingLabel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.settingText {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settingDescription {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  .settingItem {
+    padding: var(--spacing-md);
+  }
+}

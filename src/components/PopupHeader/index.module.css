@@ -1,0 +1,27 @@
+/* PC/平板端样式（默认） */
+.header {
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
+  padding: var(--spacing-lg);
+  text-align: center;
+  box-shadow: 0 2px 8px var(--shadow-md);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px var(--shadow-sm);
+}
+
+/* 手机端样式 */
+@media screen and (max-width: 768px) {
+  .header {
+    padding: var(--spacing-md);
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+}
