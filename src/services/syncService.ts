@@ -1510,6 +1510,16 @@ export async function autoSyncConfig(): Promise<boolean> {
       const shouldUpdateHistory = differences.length > 0 || timeDiffDays > 1;
 
       if (shouldUpdateHistory) {
+        // 如果只是时间差异大于1天（没有配置内容差异），需要先更新本地配置的 updatedAt
+        if (differences.length === 0 && timeDiffDays > 1) {
+          const currentTime = Date.now();
+          const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
+          // 更新本地配置的 updatedAt
+          store.dispatch(loadConfig({ updatedAt: currentTimeString }));
+          // 等待配置更新完成
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
         // 更新第一条历史记录
         const updatedConfig = getLocalConfig();
         if (updatedConfig) {
@@ -1557,6 +1567,13 @@ export async function autoSyncConfig(): Promise<boolean> {
       // 时间差大于1天，需要更新历史记录
       console.log('[syncService] 配置内容相同，但更新时间超过1天（', timeDiffDays.toFixed(2), '天），需要更新');
 
+      // 先更新本地配置的 updatedAt 为当前时间
+      const currentTime = Date.now();
+      const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
+      store.dispatch(loadConfig({ updatedAt: currentTimeString }));
+      // 等待配置更新完成
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const updatedConfig = getLocalConfig();
       if (updatedConfig) {
         // 更新第一条历史记录
@@ -1572,28 +1589,72 @@ export async function autoSyncConfig(): Promise<boolean> {
       historyBatchManager.reset();
       return true;
     } else {
-      // ConfigId 不匹配或不存在，且配置内容不同，创建新配置
-      console.log('[syncService] ConfigId 不匹配或不存在，且配置内容不同，创建新配置');
+      // ConfigId 不匹配或不存在，且配置内容不同，需要比较更新时间决定使用哪个配置
+      console.log('[syncService] ConfigId 不匹配或不存在，且配置内容不同，比较更新时间决定同步方向');
 
-      const newConfigId = generateConfigId();
+      // 比较更新时间
+      const localUpdatedAt = localConfig.updatedAt;
+      const cloudUpdatedAt = cloudConfig.updatedAt;
+      const timeDiff = localUpdatedAt - cloudUpdatedAt;
 
-      // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      console.log('[syncService] 时间比较结果:', {
+        localUpdatedAt: dayjs(localUpdatedAt).format('YYYY-MM-DD HH:mm:ss'),
+        cloudUpdatedAt: dayjs(cloudUpdatedAt).format('YYYY-MM-DD HH:mm:ss'),
+        timeDiff: timeDiff > 0 ? `本地更新（${timeDiff}ms）` : `云端更新（${-timeDiff}ms）`,
+      });
 
-      // 等待配置更新完成
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (timeDiff < 0) {
+        // 云端更新，用云端配置覆盖本地
+        console.log('[syncService] 云端配置更新，用云端配置覆盖本地配置');
 
-      // 获取更新后的配置
-      const updatedConfig = getLocalConfig();
-      if (updatedConfig) {
-        // 添加新记录到历史记录（历史记录的第一条就是当前配置）
-        historyBatchManager.add(updatedConfig, 'upload');
-        await historyBatchManager.commit();
+        // 使用云端配置覆盖本地配置
+        store.dispatch(loadConfig(cloudConfig.settings));
+
+        // 等待配置更新完成
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 更新第一条历史记录（确保历史记录与本地配置一致）
+        const updatedConfig = getLocalConfig();
+        if (updatedConfig) {
+          historyBatchManager.update(firstHistory.id, {
+            updatedAt: updatedConfig.updatedAt,
+            settings: updatedConfig.settings,
+            type: 'download',
+          });
+          await historyBatchManager.commit();
+        }
+
+        console.log('[syncService] 自动同步完成：已用云端配置覆盖本地配置');
+        historyBatchManager.reset();
+        return true;
+      } else {
+        // 本地更新，用本地配置覆盖云端
+        console.log('[syncService] 本地配置更新，用本地配置覆盖云端配置');
+
+        const newConfigId = generateConfigId();
+
+        // 更新本地配置的 configId
+        store.dispatch(loadConfig({ configId: newConfigId }));
+
+        // 等待配置更新完成
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 获取更新后的配置
+        const updatedConfig = getLocalConfig();
+        if (updatedConfig) {
+          // 更新第一条历史记录（使用本地配置）
+          historyBatchManager.update(firstHistory.id, {
+            updatedAt: updatedConfig.updatedAt,
+            settings: updatedConfig.settings,
+            type: 'upload',
+          });
+          await historyBatchManager.commit();
+        }
+
+        console.log('[syncService] 自动同步完成：已用本地配置覆盖云端配置');
+        historyBatchManager.reset();
+        return true;
       }
-
-      console.log('[syncService] 自动同步完成：已创建新配置');
-      historyBatchManager.reset();
-      return true;
     }
   } catch (error: any) {
     // 静默处理错误，不抛出（自动同步不应该影响用户体验）
@@ -2415,13 +2476,14 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
 
 // ==================== 全局自动同步管理器 ====================
 
-// 自动同步定时器（20分钟）
+// 自动同步定时器（10分钟）
 let autoSyncTimer: ReturnType<typeof setInterval> | null = null;
-const AUTO_SYNC_INTERVAL = 20 * 60 * 1000; // 20分钟
+const AUTO_SYNC_INTERVAL_MINUTES = 10;
+const AUTO_SYNC_INTERVAL = AUTO_SYNC_INTERVAL_MINUTES * 60 * 1000; // 10分钟
 
 /**
  * 启动全局自动同步定时器
- * 如果已登录，每20分钟自动执行一次 autoSyncConfig
+ * 如果已登录，每10分钟自动执行一次 autoSyncConfig
  */
 export function startAutoSync(): void {
   // 清除现有定时器
@@ -2438,7 +2500,7 @@ export function startAutoSync(): void {
     }
   }, AUTO_SYNC_INTERVAL);
 
-  console.log('[syncService] 已启动全局自动同步定时器（20分钟）');
+  console.log(`[syncService] 已启动全局自动同步定时器（${AUTO_SYNC_INTERVAL_MINUTES}分钟）`);
 }
 
 /**
