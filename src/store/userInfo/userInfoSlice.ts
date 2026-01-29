@@ -3,6 +3,7 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import dayjs from 'dayjs';
 import { SyncHistory } from '../../services/syncService';
 
 /**
@@ -15,6 +16,7 @@ export interface UserInfoState {
   
   // 用户账户信息
   userEmail: string | null; // 登录用户的邮箱
+  userAvatar: string | null; // 登录用户的头像 URL
   
   // 历史记录
   histories: SyncHistory[]; // 同步历史记录列表
@@ -29,6 +31,7 @@ const initialState: UserInfoState = {
   isLoggedIn: null,
   isChecking: false,
   userEmail: null,
+  userAvatar: null,
   histories: [],
   isLoadingHistories: false,
   historiesLastUpdated: null,
@@ -60,6 +63,7 @@ const userInfoSlice = createSlice({
         state.histories = [];
         state.historiesLastUpdated = null;
         state.userEmail = null;
+        state.userAvatar = null;
       }
     },
 
@@ -71,12 +75,20 @@ const userInfoSlice = createSlice({
     },
 
     /**
+     * 设置用户头像
+     */
+    setUserAvatar: (state, action: PayloadAction<string | null>) => {
+      state.userAvatar = action.payload;
+    },
+
+    /**
      * 重置用户信息状态
      */
     resetUserInfo: (state) => {
       state.isLoggedIn = null;
       state.isChecking = false;
       state.userEmail = null;
+      state.userAvatar = null;
       state.histories = [];
       state.isLoadingHistories = false;
       state.historiesLastUpdated = null;
@@ -95,7 +107,7 @@ const userInfoSlice = createSlice({
     setHistories: (state, action: PayloadAction<SyncHistory[]>) => {
       state.histories = action.payload;
       state.isLoadingHistories = false;
-      state.historiesLastUpdated = Date.now();
+      state.historiesLastUpdated = dayjs().valueOf();
     },
 
     /**
@@ -106,7 +118,7 @@ const userInfoSlice = createSlice({
       state.histories.unshift(action.payload);
       // 限制数量（最多4条）
       state.histories = state.histories.slice(0, 4);
-      state.historiesLastUpdated = Date.now();
+      state.historiesLastUpdated = dayjs().valueOf();
     },
 
     /**
@@ -114,7 +126,7 @@ const userInfoSlice = createSlice({
      */
     removeHistory: (state, action: PayloadAction<string>) => {
       state.histories = state.histories.filter((h) => h.id !== action.payload);
-      state.historiesLastUpdated = Date.now();
+      state.historiesLastUpdated = dayjs().valueOf();
     },
 
     /**
@@ -124,7 +136,7 @@ const userInfoSlice = createSlice({
       const index = state.histories.findIndex((h) => h.id === action.payload.id);
       if (index !== -1) {
         state.histories[index] = { ...state.histories[index], ...action.payload.updates };
-        state.historiesLastUpdated = Date.now();
+        state.historiesLastUpdated = dayjs().valueOf();
       }
     },
 
@@ -133,7 +145,7 @@ const userInfoSlice = createSlice({
      */
     clearHistories: (state) => {
       state.histories = [];
-      state.historiesLastUpdated = Date.now();
+      state.historiesLastUpdated = dayjs().valueOf();
     },
   },
 });
@@ -143,6 +155,7 @@ export const {
   setChecking,
   setLoggedIn,
   setUserEmail,
+  setUserAvatar,
   resetUserInfo,
   setLoadingHistories,
   setHistories,

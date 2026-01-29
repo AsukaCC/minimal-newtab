@@ -53,6 +53,18 @@ let loginStatusCache: {
 };
 const LOGIN_STATUS_CACHE_DURATION = 5000; // 缓存5秒
 
+// Token 有效期缓存（避免频繁验证）
+let tokenValidityCache: {
+  token: string | null;
+  expiresAt: number | null;
+  checkedAt: number;
+} = {
+  token: null,
+  expiresAt: null,
+  checkedAt: 0,
+};
+const TOKEN_EXPIRY_BUFFER_MS = 60 * 1000; // 过期前1分钟视为无效
+
 // 标记是否需要强制重新授权（遇到权限不足错误时设置）
 let requiresForceReauth = false;
 
@@ -70,6 +82,11 @@ function clearLoginStatusCache(): void {
   loginStatusCache = {
     result: null,
     timestamp: 0,
+  };
+  tokenValidityCache = {
+    token: null,
+    expiresAt: null,
+    checkedAt: 0,
   };
 }
 
@@ -237,8 +254,25 @@ function requestNewToken(resolve: (token: string) => void, reject: (error: Error
  * 使用缓存机制避免短时间内重复验证
  */
 export async function isLoggedIn(): Promise<boolean> {
+  const now = dayjs().valueOf();
+
+  // 如果已有未过期的 token 校验结果，直接返回
+  if (
+    tokenValidityCache.token &&
+    tokenValidityCache.expiresAt &&
+    now < tokenValidityCache.expiresAt - TOKEN_EXPIRY_BUFFER_MS
+  ) {
+    return true;
+  }
+  if (tokenValidityCache.expiresAt && now >= tokenValidityCache.expiresAt - TOKEN_EXPIRY_BUFFER_MS) {
+    tokenValidityCache = {
+      token: null,
+      expiresAt: null,
+      checkedAt: 0,
+    };
+  }
+
   // 检查缓存是否有效
-  const now = Date.now();
   if (
     loginStatusCache.result !== null &&
     now - loginStatusCache.timestamp < LOGIN_STATUS_CACHE_DURATION
@@ -312,6 +346,19 @@ export async function isLoggedIn(): Promise<boolean> {
 
             // Token 验证成功，更新缓存
             loginStatusCache = { result: true, timestamp: now };
+            if (typeof tokenInfo.expires_in === 'number') {
+              tokenValidityCache = {
+                token,
+                expiresAt: dayjs().valueOf() + tokenInfo.expires_in * 1000,
+                checkedAt: dayjs().valueOf(),
+              };
+            } else {
+              tokenValidityCache = {
+                token,
+                expiresAt: dayjs().valueOf() + 5 * 60 * 1000,
+                checkedAt: dayjs().valueOf(),
+              };
+            }
             resolve(true);
           } catch (error: any) {
             console.error('[syncService] 验证 token 时出错:', error);
@@ -333,37 +380,36 @@ export async function isLoggedIn(): Promise<boolean> {
  * 获取用户信息（邮箱）
  * 返回登录用户的邮箱，如果未登录或获取失败则返回 null
  */
-export async function getUserInfo(): Promise<{ email: string } | null> {
+export async function getUserInfo(): Promise<{ email: string; avatarUrl?: string | null } | null> {
   try {
     const token = await getAccessToken();
     if (!token) {
       return null;
     }
 
-    // 调用 Google OAuth2 tokeninfo API 获取用户信息
-    const response = await fetch(
-      `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${encodeURIComponent(token)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // 调用 Google OAuth2 userinfo API 获取用户信息（包含头像）
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
       return null;
     }
 
-    const tokenInfo = await response.json();
+    const userInfo = await response.json();
 
-    // 检查 token 信息是否有效
-    if (tokenInfo.error || !tokenInfo.email) {
+    // 检查用户信息是否有效
+    if (userInfo.error || !userInfo.email) {
       return null;
     }
 
     return {
-      email: tokenInfo.email,
+      email: userInfo.email,
+      avatarUrl: userInfo.picture || null,
     };
   } catch (error: any) {
     console.error('[syncService] 获取用户信息失败:', error);
@@ -586,7 +632,7 @@ async function uploadFileToDrive(fileName: string, content: string, existingFile
  */
 async function downloadFileFromDriveWithToken(fileId: string, token: string): Promise<string> {
   // 检查缓存，防止短时间内重复下载同一文件
-  const now = Date.now();
+  const now = dayjs().valueOf();
   const cached = downloadCache.get(fileId);
   if (cached && now - cached.timestamp < DOWNLOAD_CACHE_DURATION) {
     console.log(`[syncService] 使用缓存的下载请求，fileId: ${fileId}`);
@@ -861,11 +907,11 @@ export function getLocalConfig(): SyncConfigParsed | null {
     let updatedAt: number;
     if (typeof configState.updatedAt === 'string') {
       const parsed = Date.parse(configState.updatedAt);
-      updatedAt = !isNaN(parsed) && parsed > 0 ? parsed : Date.now();
+      updatedAt = !isNaN(parsed) && parsed > 0 ? parsed : dayjs().valueOf();
     } else if (typeof configState.updatedAt === 'number') {
-      updatedAt = configState.updatedAt > 0 ? configState.updatedAt : Date.now();
+      updatedAt = configState.updatedAt > 0 ? configState.updatedAt : dayjs().valueOf();
     } else {
-      updatedAt = Date.now();
+      updatedAt = dayjs().valueOf();
     }
 
     const syncConfig: SyncConfigParsed = {
@@ -894,7 +940,7 @@ function normalizeUpdatedAt(value: unknown): number {
     }
   }
 
-  return Date.now();
+  return dayjs().valueOf();
 }
 
 // ==================== 核心功能 ====================
@@ -942,7 +988,7 @@ export async function uploadConfig(): Promise<boolean> {
 
     // 准备同步配置
     const syncConfig: SyncConfigStorage = {
-      updatedAt: Date.now(),
+      updatedAt: dayjs().valueOf(),
       settings: configToSync.settings,
     };
 
@@ -1151,7 +1197,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
 
       // 准备同步配置
       const syncConfig: SyncConfigStorage = {
-        updatedAt: Date.now(),
+        updatedAt: dayjs().valueOf(),
         settings: configToSync.settings,
       };
 
@@ -1206,8 +1252,8 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
     const isContentSame = compareConfigContent(localConfig.settings, cloudConfig.settings);
 
     console.log('[syncService] 配置比对结果:', {
-      localUpdatedAt: new Date(localUpdatedAt).toISOString(),
-      cloudUpdatedAt: new Date(cloudUpdatedAt).toISOString(),
+      localUpdatedAt: dayjs(localUpdatedAt).toISOString(),
+      cloudUpdatedAt: dayjs(cloudUpdatedAt).toISOString(),
       timeDiff,
       isContentSame,
     });
@@ -1241,7 +1287,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
 
       // 准备同步配置
       const syncConfig: SyncConfigStorage = {
-        updatedAt: Date.now(),
+        updatedAt: dayjs().valueOf(),
         settings: configToSync.settings,
       };
 
@@ -1305,7 +1351,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
 
       // 准备同步配置
       const syncConfig: SyncConfigStorage = {
-        updatedAt: Date.now(),
+        updatedAt: dayjs().valueOf(),
         settings: configToSync.settings,
       };
 
@@ -1512,7 +1558,7 @@ export async function autoSyncConfig(): Promise<boolean> {
       if (shouldUpdateHistory) {
         // 如果只是时间差异大于1天（没有配置内容差异），需要先更新本地配置的 updatedAt
         if (differences.length === 0 && timeDiffDays > 1) {
-          const currentTime = Date.now();
+          const currentTime = dayjs().valueOf();
           const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
           // 更新本地配置的 updatedAt
           store.dispatch(loadConfig({ updatedAt: currentTimeString }));
@@ -1568,7 +1614,7 @@ export async function autoSyncConfig(): Promise<boolean> {
       console.log('[syncService] 配置内容相同，但更新时间超过1天（', timeDiffDays.toFixed(2), '天），需要更新');
 
       // 先更新本地配置的 updatedAt 为当前时间
-      const currentTime = Date.now();
+      const currentTime = dayjs().valueOf();
       const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
       store.dispatch(loadConfig({ updatedAt: currentTimeString }));
       // 等待配置更新完成
@@ -1862,7 +1908,7 @@ class HistoryBatchManager {
     }
 
     const newHistory: SyncHistory = {
-      id: `history-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
       updatedAt: config.updatedAt,
       settings: config.settings,
       type,
@@ -2365,9 +2411,9 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       // 将导入的配置添加到历史记录中（跳过已存在的 configId）
       for (const config of validConfigs) {
         if (config.configId && !currentConfigIds.has(config.configId)) {
-          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : Date.now();
+          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : dayjs().valueOf();
           const newHistory: SyncHistory = {
-            id: `history-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
             updatedAt: configUpdatedAt,
             settings: config,
             type: 'restore', // 导入的配置标记为 restore 类型
@@ -2405,9 +2451,9 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       // 将导入的配置添加到历史记录中（跳过已存在的 configId）
       for (const config of validConfigs) {
         if (config.configId && !currentConfigIds.has(config.configId)) {
-          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : Date.now();
+          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : dayjs().valueOf();
           const newHistory: SyncHistory = {
-            id: `history-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
             updatedAt: configUpdatedAt,
             settings: config,
             type: 'restore',
@@ -2441,7 +2487,7 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
           ? (typeof latestConfig.updatedAt === 'string'
               ? dayjs(latestConfig.updatedAt).valueOf()
               : latestConfig.updatedAt)
-          : Date.now();
+          : dayjs().valueOf();
 
         const syncConfig: SyncConfigStorage = {
           updatedAt: configUpdatedAt,

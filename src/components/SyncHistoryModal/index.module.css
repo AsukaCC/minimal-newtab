@@ -5,7 +5,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 900;
   animation: fadeIn 0.3s ease;
 }
@@ -19,14 +21,17 @@
   width: 90%;
   max-width: 640px;
   max-height: 85vh;
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--glass-shadow);
   z-index: 1000;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
 }
 
 /* 弹窗头部 - 参考公共样式 common-modal-header */
@@ -35,9 +40,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 /* 弹窗标题 - 参考公共样式 common-modal-title */
@@ -66,7 +71,7 @@
 }
 
 .closeButton:hover {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
   transform: rotate(90deg);
 }
@@ -92,6 +97,14 @@
   min-height: 0;
 }
 
+.subPageContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
 .modalContent::-webkit-scrollbar {
   width: 8px;
 }
@@ -112,41 +125,25 @@
 .syncSection {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--bg-secondary);
+  gap: 16px;
+  padding: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  border: 1px solid var(--border-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .allActionsRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  gap: 10px;
+  flex-wrap: wrap;
   width: 100%;
-  padding: 4px 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
+  padding: 0;
 }
 
-.allActionsRow::-webkit-scrollbar {
-  height: 4px;
-}
-
-.allActionsRow::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.allActionsRow::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: var(--radius-sm);
-}
-
-.allActionsRow::-webkit-scrollbar-thumb:hover {
-  background: var(--border-color-dark);
-}
+/* 移除横向滚动条样式，改用 flex-wrap */
 
 .syncStatus {
   display: flex;
@@ -267,8 +264,8 @@
 .historySection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 4px;
+  gap: 12px;
+  margin-top: 0;
 }
 
 .historyHeader {
@@ -297,9 +294,9 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -311,7 +308,7 @@
 }
 
 .refreshButton:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
   transform: rotate(180deg);
@@ -329,9 +326,9 @@
   padding: 48px 24px;
   color: var(--text-tertiary);
   font-size: 14px;
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   border-radius: 12px;
-  border: 1px dashed var(--border-color);
+  border: 1px dashed var(--glass-border);
 }
 
 .historyList {
@@ -339,7 +336,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding-right: 4px;
   padding-bottom: 4px;
 }
@@ -349,7 +346,7 @@
 }
 
 .historyList::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   border-radius: var(--radius-sm);
 }
 
@@ -366,28 +363,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
+  padding: 14px 18px;
+  background: var(--glass-bg);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  gap: 12px;
+  gap: 16px;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .historyItem:hover {
   border-color: var(--border-color-dark);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
 }
 
 .historyItemCurrent {
   border-color: var(--color-primary);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15), 0 2px 8px rgba(102, 126, 234, 0.1);
 }
 
 .historyItemCurrent:hover {
   border-color: var(--color-primary);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
 }
 
 .historyInfo {
@@ -526,9 +525,9 @@
 .exportButton,
 .importButton {
   padding: 6px 12px;
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -552,7 +551,7 @@
 
 .exportButton:hover:not(:disabled),
 .importButton:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
 }
@@ -616,11 +615,12 @@
   }
 
   .syncSection {
-    padding: 14px;
+    padding: 16px;
+    gap: 12px;
   }
 
   .allActionsRow {
-    gap: 6px;
+    gap: 8px;
   }
 
   .syncButton,

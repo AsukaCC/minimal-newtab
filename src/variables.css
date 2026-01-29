@@ -31,6 +31,19 @@
   /* 渐变 - 亮色主题 */
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
+  /* 应用背景 - iOS 风格柔和渐变 */
+  --app-background: radial-gradient(1200px 800px at 20% 10%, rgba(102, 126, 234, 0.18), transparent 60%),
+    radial-gradient(900px 700px at 80% 20%, rgba(118, 75, 162, 0.12), transparent 55%),
+    linear-gradient(180deg, #f7f8fb 0%, #eef1f6 100%);
+
+  /* 磨砂玻璃 */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --glass-blur: 16px;
+  --glass-blur-strong: 22px;
+
   /* 动态主题色按钮变量（通过 JavaScript 动态设置） */
   --theme-color: #667eea;
   --button-primary-bg: var(--theme-color);
@@ -92,6 +105,19 @@
 
   /* 渐变 - 暗色主题 */
   --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+
+  /* 应用背景 - 暗色柔和渐变 */
+  --app-background: radial-gradient(1200px 800px at 20% 10%, rgba(139, 158, 255, 0.18), transparent 60%),
+    radial-gradient(900px 700px at 80% 20%, rgba(74, 85, 104, 0.25), transparent 55%),
+    linear-gradient(180deg, #0f1115 0%, #151922 100%);
+
+  /* 磨砂玻璃 */
+  --glass-bg: rgba(20, 22, 28, 0.58);
+  --glass-bg-strong: rgba(20, 22, 28, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.3);
+  --glass-blur: 18px;
+  --glass-blur-strong: 24px;
 
   /* 动态主题色按钮变量（通过 JavaScript 动态设置） */
   --theme-color: #8b9eff;

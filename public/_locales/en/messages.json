@@ -25,6 +25,15 @@
   "settings_themeColorDescription": {
     "message": "System theme color"
   },
+  "settings_themeAndLanguage": {
+    "message": "Extension Settings"
+  },
+  "settings_themeAndLanguageDescription": {
+    "message": "Theme color and language settings"
+  },
+  "settings_openThemeAndLanguage": {
+    "message": "Open"
+  },
   "settings_linkOpenMode": {
     "message": "Link Open Mode"
   },
@@ -48,6 +57,9 @@
   },
   "settings_toggleLinkOpenMode": {
     "message": "Toggle link open mode"
+  },
+  "common_back": {
+    "message": "Back"
   },
   "search_placeholder": {
     "message": "Search..."
@@ -295,6 +307,9 @@
   },
   "popup_login": {
     "message": "Sign in"
+  },
+  "popup_loginWithGoogle": {
+    "message": "Sign in with Google"
   },
   "popup_googleAccount": {
     "message": "Google Account"

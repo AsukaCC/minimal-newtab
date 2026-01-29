@@ -46,7 +46,7 @@ function getSystemLanguage(): string {
  * 生成唯一的配置ID
  */
 export function generateConfigId(): string {
-  return `config-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  return `config-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 15)}`;
 }
 
 /**

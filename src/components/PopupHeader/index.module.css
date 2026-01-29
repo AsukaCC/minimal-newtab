@@ -1,18 +1,21 @@
 /* PC/平板端样式（默认） */
 .header {
-  background: var(--gradient-primary);
-  color: var(--text-inverse);
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
   padding: var(--spacing-lg);
   text-align: center;
-  box-shadow: 0 2px 8px var(--shadow-md);
+  box-shadow: var(--glass-shadow);
+  border-bottom: 1px solid var(--glass-border);
   transition: box-shadow 0.3s ease, background 0.3s ease;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .header h1 {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
-  text-shadow: 0 1px 2px var(--shadow-sm);
+  text-shadow: none;
 }
 
 /* 手机端样式 */

@@ -10,9 +10,10 @@ import Button from '../Button';
 interface SyncHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isSubPage?: boolean;
 }
 
-const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) => {
+const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, isSubPage = false }) => {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
   // 从 Redux store 读取历史记录和登录状态
@@ -69,7 +70,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
     }
 
     // 防止频繁请求：如果距离上次请求不到2秒，跳过
-    const now = Date.now();
+    const now = dayjs().valueOf();
     if (now - lastLoadTimeRef.current < 2000) {
       return;
     }
@@ -387,8 +388,203 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
   };
 
 
-  if (!isOpen) {
+  if (!isOpen && !isSubPage) {
     return null;
+  }
+
+  const content = (
+    <div className={isSubPage ? styles.subPageContent : styles.modalContent}>
+      {/* 登录状态检查 */}
+      {(isLoggedIn === null || isChecking) && (
+        <div className={styles.syncSection}>
+          <div className={styles.syncStatus}>
+            <span>{t('popup_checkingLoginStatus')}</span>
+          </div>
+        </div>
+      )}
+
+      {isLoggedIn === false && (
+        <div className={styles.syncSection}>
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '16px', marginBottom: '12px', fontWeight: '500' }}>
+              {t('popup_pleaseLoginGoogle')}
+            </div>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary, #666)', lineHeight: '1.6' }}>
+              {t('popup_pleaseLoginToUseSync')}
+              <br />
+              {t('popup_loginDriveSync')}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isLoggedIn === true && (
+        <>
+          <div className={styles.syncSection}>
+            <div className={styles.allActionsRow}>
+              <Button
+                variant="primary"
+                iconOnly
+                size="small"
+                onClick={handleRefreshHistory}
+                disabled={isAnyOperationInProgress || !isLoggedIn}
+                title={t('popup_refresh')}
+                loading={isRefreshing}
+                className={`${styles.refreshButton} refreshButton`}
+                icon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                }
+              />
+              <Button
+                variant="primary"
+                size="small"
+                onClick={handleManualSync}
+                disabled={isAnyOperationInProgress || isLoggedIn !== true}
+                title={t('popup_syncNow')}
+                loading={isSyncing}>
+                {isSyncing ? null : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+                  </svg>
+                )}
+                {t('popup_syncNow')}
+              </Button>
+              <Button
+                variant="info"
+                size="small"
+                onClick={handleExport}
+                disabled={isAnyOperationInProgress || histories.length === 0}
+                title={t('popup_export')}
+                loading={isExporting}
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                }>
+                {isExporting ? t('popup_exporting') : t('popup_export')}
+              </Button>
+              <Button
+                variant="info"
+                size="small"
+                onClick={triggerImport}
+                disabled={isAnyOperationInProgress}
+                title={t('popup_import')}
+                loading={isImporting}
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                }>
+                {isImporting ? t('popup_importing') : t('popup_import')}
+              </Button>
+              <Button
+                variant="danger"
+                size="small"
+                onClick={handleClearAll}
+                disabled={isAnyOperationInProgress || histories.length === 0}
+                title={t('popup_clearAll')}
+                loading={isClearing}
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                }>
+                {isClearing ? t('popup_clearing') : t('popup_clearAll')}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                style={{ display: 'none' }}
+                onChange={handleImport}
+              />
+            </div>
+            {error && <div className={styles.error}>{error}</div>}
+          </div>
+
+          <div className={styles.historySection}>
+            {histories.length === 0 ? (
+              <div className={styles.emptyHistory}>{t('popup_noHistory')}</div>
+            ) : (
+              <div className={styles.historyList}>
+                {histories.slice(0, 4).map((history) => {
+                  const isCurrent = currentHistoryId === history.id;
+                  return (
+                    <div
+                      key={history.id}
+                      className={`${styles.historyItem} ${
+                        isCurrent ? styles.historyItemCurrent : ''
+                      }`}>
+                      <div className={styles.historyInfo}>
+                        <div className={styles.historyType}>
+                          {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                          {isCurrent && (
+                            <span className={styles.currentBadge}> {t('popup_current')}</span>
+                          )}
+                        </div>
+                        <div className={styles.historyTime}>
+                          {formatHistoryTime(history.updatedAt)}
+                        </div>
+                      </div>
+                      {!isCurrent && (
+                        <div className={styles.historyActions}>
+                          <Button
+                            variant="primary"
+                            size="small"
+                            onClick={() => handleRestore(history.id)}
+                            disabled={isAnyOperationInProgress}
+                            title={t('popup_restore')}
+                            loading={isRestoring === history.id}
+                            icon={
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                                <path d="M21 3v5h-5"></path>
+                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                                <path d="M3 21v-5h5"></path>
+                              </svg>
+                            }>
+                            {isRestoring === history.id ? t('popup_restoring') : t('popup_restore')}
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="small"
+                            onClick={() => handleDelete(history.id)}
+                            disabled={isAnyOperationInProgress}
+                            title={t('popup_delete')}
+                            loading={isDeleting === history.id}
+                            icon={
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>
+                            }>
+                            {isDeleting === history.id ? t('popup_deleting') : t('popup_delete')}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  if (isSubPage) {
+    return content;
   }
 
   return (
@@ -408,195 +604,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
             </svg>
           </Button>
         </div>
-
-        <div className={styles.modalContent}>
-          {/* 登录状态检查 */}
-          {(isLoggedIn === null || isChecking) && (
-            <div className={styles.syncSection}>
-              <div className={styles.syncStatus}>
-                <span>{t('popup_checkingLoginStatus')}</span>
-              </div>
-            </div>
-          )}
-
-          {isLoggedIn === false && (
-            <div className={styles.syncSection}>
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <div style={{ fontSize: '16px', marginBottom: '12px', fontWeight: '500' }}>
-                  {t('popup_pleaseLoginGoogle')}
-                </div>
-                <div style={{ fontSize: '14px', color: 'var(--text-secondary, #666)', lineHeight: '1.6' }}>
-                  {t('popup_pleaseLoginToUseSync')}
-                  <br />
-                  {t('popup_loginDriveSync')}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isLoggedIn === true && (
-            <>
-              <div className={styles.syncSection}>
-                <div className={styles.allActionsRow}>
-                  <Button
-                    variant="primary"
-                    iconOnly
-                    size="small"
-                    onClick={handleRefreshHistory}
-                    disabled={isAnyOperationInProgress || !isLoggedIn}
-                    title={t('popup_refresh')}
-                    loading={isRefreshing}
-                    className={`${styles.refreshButton} refreshButton`}
-                    icon={
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                        <path d="M21 3v5h-5"></path>
-                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                        <path d="M3 21v-5h5"></path>
-                      </svg>
-                    }
-                  />
-                  <Button
-                    variant="primary"
-                    size="small"
-                    onClick={handleManualSync}
-                    disabled={isAnyOperationInProgress || isLoggedIn !== true}
-                    title={t('popup_syncNow')}
-                    loading={isSyncing}>
-                    {isSyncing ? null : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
-                      </svg>
-                    )}
-                    {t('popup_syncNow')}
-                  </Button>
-                  <Button
-                    variant="info"
-                    size="small"
-                    onClick={handleExport}
-                    disabled={isAnyOperationInProgress || histories.length === 0}
-                    title={t('popup_export')}
-                    loading={isExporting}
-                    icon={
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                    }>
-                    {isExporting ? t('popup_exporting') : t('popup_export')}
-                  </Button>
-                  <Button
-                    variant="info"
-                    size="small"
-                    onClick={triggerImport}
-                    disabled={isAnyOperationInProgress}
-                    title={t('popup_import')}
-                    loading={isImporting}
-                    icon={
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                      </svg>
-                    }>
-                    {isImporting ? t('popup_importing') : t('popup_import')}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="small"
-                    onClick={handleClearAll}
-                    disabled={isAnyOperationInProgress || histories.length === 0}
-                    title={t('popup_clearAll')}
-                    loading={isClearing}
-                    icon={
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      </svg>
-                    }>
-                    {isClearing ? t('popup_clearing') : t('popup_clearAll')}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json"
-                    style={{ display: 'none' }}
-                    onChange={handleImport}
-                  />
-                </div>
-                {error && <div className={styles.error}>{error}</div>}
-              </div>
-
-              <div className={styles.historySection}>
-                {histories.length === 0 ? (
-                  <div className={styles.emptyHistory}>{t('popup_noHistory')}</div>
-                ) : (
-                  <div className={styles.historyList}>
-                    {histories.slice(0, 4).map((history) => {
-                      const isCurrent = currentHistoryId === history.id;
-                      return (
-                        <div
-                          key={history.id}
-                          className={`${styles.historyItem} ${
-                            isCurrent ? styles.historyItemCurrent : ''
-                          }`}>
-                          <div className={styles.historyInfo}>
-                            <div className={styles.historyType}>
-                              {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
-                              {isCurrent && (
-                                <span className={styles.currentBadge}> {t('popup_current')}</span>
-                              )}
-                            </div>
-                            <div className={styles.historyTime}>
-                              {formatHistoryTime(history.updatedAt)}
-                            </div>
-                          </div>
-                          {!isCurrent && (
-                            <div className={styles.historyActions}>
-                              <Button
-                                variant="primary"
-                                size="small"
-                                onClick={() => handleRestore(history.id)}
-                                disabled={isAnyOperationInProgress}
-                                title={t('popup_restore')}
-                                loading={isRestoring === history.id}
-                                icon={
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                                    <path d="M21 3v5h-5"></path>
-                                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                                    <path d="M3 21v-5h5"></path>
-                                  </svg>
-                                }>
-                                {isRestoring === history.id ? t('popup_restoring') : t('popup_restore')}
-                              </Button>
-                              <Button
-                                variant="danger"
-                                size="small"
-                                onClick={() => handleDelete(history.id)}
-                                disabled={isAnyOperationInProgress}
-                                title={t('popup_delete')}
-                                loading={isDeleting === history.id}
-                                icon={
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                  </svg>
-                                }>
-                                {isDeleting === history.id ? t('popup_deleting') : t('popup_delete')}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        {content}
       </div>
     </>
   );

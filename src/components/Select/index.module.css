@@ -17,9 +17,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
@@ -29,13 +29,15 @@
   user-select: none;
   min-height: 44px;
   box-sizing: border-box;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .select:hover:not(.disabled) {
   border-color: var(--color-primary);
-  background-color: var(--bg-tertiary);
+  background-color: var(--glass-bg-strong);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px var(--shadow-md);
+  box-shadow: var(--glass-shadow);
 }
 
 .select:focus-visible {
@@ -78,15 +80,17 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 16px var(--shadow-lg);
+  box-shadow: var(--glass-shadow);
   z-index: 9999;
   overflow: hidden;
   animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 300px;
   overflow-y: auto;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 @keyframes slideDown {
@@ -108,7 +112,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .option:last-child {
@@ -116,12 +120,12 @@
 }
 
 .option:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--glass-bg);
   color: var(--color-primary);
 }
 
 .option.selected {
-  background-color: var(--bg-secondary);
+  background-color: var(--glass-bg);
   color: var(--color-primary);
   font-weight: 600;
   position: relative;
@@ -146,7 +150,7 @@
 
 .disabled .select:hover {
   border-color: var(--border-color);
-  background-color: var(--bg-primary);
+  background-color: var(--glass-bg);
   transform: none;
   box-shadow: none;
 }
@@ -175,7 +179,7 @@
 }
 
 .dropdown::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   border-radius: 3px;
 }
 

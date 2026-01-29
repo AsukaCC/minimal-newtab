@@ -6,6 +6,7 @@ export {
   setChecking,
   setLoggedIn,
   setUserEmail,
+  setUserAvatar,
   resetUserInfo,
   setLoadingHistories,
   setHistories,

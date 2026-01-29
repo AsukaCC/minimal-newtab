@@ -4,16 +4,19 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px var(--shadow-md);
+  box-shadow: var(--glass-shadow);
   color: var(--text-primary);
   z-index: 500;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .settingsButton:hover {
@@ -38,7 +41,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 550;
   animation: fadeIn 0.3s ease;
 }
@@ -52,24 +57,45 @@
   right: -400px;
   width: 400px;
   height: 100vh;
-  background: var(--bg-primary);
-  box-shadow: -2px 0 8px var(--shadow-lg);
+  background: var(--glass-bg-strong);
+  border-left: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   z-index: 600;
-  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* 更平滑的 iOS 曲线 */
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 12px;
   box-sizing: border-box;
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
 }
 
 .settingsPanel.open {
   right: 0;
 }
 
+.slidingWrapper {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slideActive {
+  transform: translateX(-50%);
+}
+
+.pageContent {
+  width: 50%;
+  height: 100%;
+  flex-shrink: 0;
+}
+
 /* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
 .settingsPanel.selectOpen {
-  overflow: visible;
+  /* 只放开纵向溢出，避免横向把一级页面露出来 */
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* 设置容器 */
@@ -79,6 +105,7 @@
   gap: 12px;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
@@ -91,56 +118,118 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  padding: 40px 24px 20px; /* iOS 风格的大留白 */
+  background: transparent;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .settingsTitle {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 32px; /* iOS 大标题风格 */
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
-/* 关闭按钮 */
+/* 子页面标题样式，字号稍微调小一点以示区分 */
+.subPageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* 简约关闭按钮 */
 .closeButton {
-  width: 36px;
-  height: 36px;
-  border: none;
+  display: none;
+}
+
+/* 设置面板头部 - 使用 Flex 布局替代绝对定位 */
+.settingsHeader {
+  display: flex;
+  align-items: flex-start; /* 顶部对齐 */
+  justify-content: space-between;
+  padding: 20px; /* 与主页 tools 容器的 top/right (20px) 保持一致 */
   background: transparent;
-  border-radius: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.accountWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 简约关闭按钮 - 继承主页 SettingsButton 的尺寸和风格 */
+.closeButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
+  box-shadow: var(--glass-shadow);
   color: var(--text-primary);
+  flex-shrink: 0;
+  margin-left: 12px; /* 与账户信息保持间距 */
   padding: 0;
   outline: none;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .closeButton:hover {
-  background: var(--bg-tertiary);
-  transform: rotate(90deg);
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow);
+  background: var(--glass-bg-strong);
 }
 
 .closeButton:active {
-  transform: rotate(90deg) scale(0.92);
-  background: var(--bg-tertiary);
-}
-
-.closeButton:focus-visible {
-  outline: 2px solid var(--primary-color, #007bff);
-  outline-offset: 2px;
+  transform: translateY(0);
 }
 
 .closeIcon {
   width: 18px;
   height: 18px;
   fill: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 简约返回按钮 */
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary); /* iOS 风格主题蓝 */
+  transition: opacity 0.2s ease;
+  margin-left: -8px; /* 让图标视觉上与边缘对齐 */
+}
+
+.backButton:hover {
+  opacity: 0.6;
+}
+
+.backIcon {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
 }
 
 /* 设置项列表区域 */
@@ -148,13 +237,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   overflow-y: auto;
   overflow-x: visible;
-  min-height: 0;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: var(--spacing-lg);
+  padding: 0 20px 24px; /* 侧边边距与 header 保持一致 (20px) */
 }
 
 /* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
@@ -183,22 +269,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
-  background: var(--bg-primary);
+  padding: 14px 16px; /* iOS 风格紧凑间距 */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   z-index: 1;
-}
-
-/* 当设置项包含 Select 时，当下拉菜单打开时提高 z-index 避免被遮挡 */
-.settingItemWithSelect.selectOpen {
-  z-index: 100;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .settingItem:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg-strong); /* iOS 列表项 hover 通常不改变背景色，或极轻微 */
+  opacity: 0.8;
 }
 
 .settingLabel {

@@ -114,13 +114,15 @@
   height: 32px;
   padding: 0;
   border-radius: 50%;
-  background: transparent;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   color: var(--text-secondary);
-  border: none;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .iconOnly:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
 }
 
@@ -228,7 +230,7 @@
 }
 
 .button.iconOnly.closeButton:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--glass-bg-strong);
   transform: rotate(90deg);
 }
 
@@ -238,16 +240,16 @@
 
 /* 特殊样式：刷新按钮（图标按钮的特殊变体） */
 .button.iconOnly.refreshButton {
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   width: 32px;
   height: 32px;
 }
 
 .button.iconOnly.refreshButton:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
   transform: rotate(180deg);

@@ -4,10 +4,13 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-lg);
-  background: var(--bg-primary);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   transition: all 0.2s ease;
   z-index: 1;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 /* 当设置项包含 Select 时，当下拉菜单打开时提高 z-index 避免被遮挡 */
@@ -16,9 +19,9 @@
 }
 
 .settingItem:hover {
-  background: var(--bg-tertiary);
+  background: var(--glass-bg-strong);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--glass-shadow);
 }
 
 .settingLabel {

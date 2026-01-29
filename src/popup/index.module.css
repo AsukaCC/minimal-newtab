@@ -2,7 +2,7 @@
 .popupPage {
   width: 500px;
   min-height: 500px;
-  background-color: var(--bg-primary);
+  background: var(--app-background);
   color: var(--text-primary);
 }
 
@@ -13,7 +13,11 @@
   justify-content: center;
   height: 100%;
   min-height: 500px;
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  box-shadow: var(--glass-shadow);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
   padding: var(--spacing-xl);
@@ -89,22 +93,24 @@
   justify-content: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: var(--spacing-md);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .googleButton:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--glass-bg-strong);
   border-color: var(--border-color-dark);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
 }
 
 .googleButton:active:not(:disabled) {
@@ -158,8 +164,8 @@
   border-radius: 50%;
   margin-bottom: var(--spacing-md);
   overflow: hidden;
-  border: 3px solid var(--border-color);
-  background: var(--bg-secondary);
+  border: 3px solid var(--glass-border);
+  background: var(--glass-bg);
 }
 
 .avatar img {
@@ -201,8 +207,11 @@
   color: var(--text-secondary);
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .statusDot {
@@ -261,15 +270,17 @@
   padding: var(--spacing-sm) var(--spacing-md);
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .logoutButton:hover {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
 }
@@ -279,16 +290,18 @@
   padding: var(--spacing-sm) var(--spacing-md);
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: var(--spacing-xs);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .historyButton:hover {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
 }
@@ -359,27 +372,29 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
   gap: var(--spacing-sm);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .historyItem:hover {
   border-color: var(--border-color-dark);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
 }
 
 .historyItemCurrent {
   border-color: var(--color-primary);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 102, 126, 234), 0.1);
 }
 
 .historyItemCurrent:hover {
   border-color: var(--color-primary);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
 }
 
 .historyInfo {
@@ -482,9 +497,9 @@
 .exportButton,
 .importButton {
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 500;
@@ -494,11 +509,13 @@
   align-items: center;
   gap: var(--spacing-xs);
   white-space: nowrap;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .exportButton:hover:not(:disabled),
 .importButton:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
 }

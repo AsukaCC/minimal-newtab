@@ -59,7 +59,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 800;
   animation: fadeIn 0.3s ease;
 }
@@ -84,9 +86,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -100,9 +105,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 /* 弹窗标题 */
@@ -235,13 +240,15 @@
 
 /* 次要功能按钮（Secondary Action Button） */
 .common-button-secondary {
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .common-button-secondary:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
 }
@@ -258,7 +265,7 @@
 }
 
 .common-button-icon:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
 }
 
@@ -279,7 +286,7 @@
 }
 
 .common-button-close:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--glass-bg);
   color: var(--text-primary);
   transform: rotate(90deg);
 }
@@ -290,16 +297,16 @@
 
 /* 刷新按钮（Refresh Button） */
 .common-button-refresh {
-  background: var(--bg-primary);
+  background: var(--glass-bg);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   width: 32px;
   height: 32px;
 }
 
 .common-button-refresh:hover:not(:disabled) {
-  background: var(--bg-primary);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color-dark);
   transform: rotate(180deg);

@@ -25,6 +25,15 @@
   "settings_themeColorDescription": {
     "message": "系统主题色"
   },
+  "settings_themeAndLanguage": {
+    "message": "拓展设置"
+  },
+  "settings_themeAndLanguageDescription": {
+    "message": "主题色与语言设置"
+  },
+  "settings_openThemeAndLanguage": {
+    "message": "进入"
+  },
   "settings_linkOpenMode": {
     "message": "链接打开方式"
   },
@@ -48,6 +57,9 @@
   },
   "settings_toggleLinkOpenMode": {
     "message": "切换链接打开方式"
+  },
+  "common_back": {
+    "message": "返回"
   },
   "search_placeholder": {
     "message": "搜索..."
@@ -295,6 +307,9 @@
   },
   "popup_login": {
     "message": "登录"
+  },
+  "popup_loginWithGoogle": {
+    "message": "通过Google登录"
   },
   "popup_googleAccount": {
     "message": "Google 账户"

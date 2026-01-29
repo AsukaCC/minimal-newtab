@@ -9,7 +9,7 @@ import ThemeButton from '../components/ThemeButton';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setChecking, setLoggedIn, setHistories, setLoadingHistories, setUserEmail } from '../store';
+import { setChecking, setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserAvatar } from '../store';
 import { isLoggedIn as checkIsLoggedIn, loadHistoryFromDriveWithToken, getUserInfo, startAutoSync, stopAutoSync } from '../services/syncService';
 import { getAccessToken } from '../services/syncService';
 import styles from './index.module.css';
@@ -51,8 +51,11 @@ const NewTabApp: React.FC = () => {
             // 获取用户信息
             try {
               const userInfo = await getUserInfo();
-              if (userInfo && userInfo.email) {
+              if (userInfo?.email) {
                 dispatch(setUserEmail(userInfo.email));
+              }
+              if (userInfo?.avatarUrl) {
+                dispatch(setUserAvatar(userInfo.avatarUrl));
               }
             } catch (error) {
               console.error('[NewTabApp] 获取用户信息失败:', error);
@@ -66,6 +69,7 @@ const NewTabApp: React.FC = () => {
         } else {
           // 登出时清空用户信息
           dispatch(setUserEmail(null));
+          dispatch(setUserAvatar(null));
         }
       } catch (error) {
         console.error('[NewTabApp] 检查登录状态失败:', error);

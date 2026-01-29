@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail } from '../../../../store';
+import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserAvatar } from '../../../../store';
 import Button from '../../../Button';
 import { useI18n } from '../../../../hooks/useI18n';
 import { syncConfig, isLoggedIn as checkIsLoggedIn, logout as logoutService, loadHistoryFromDriveWithToken, getAccessToken, getUserInfo } from '../../../../services/syncService';
@@ -13,18 +13,22 @@ const GoogleAccountSetting: React.FC = () => {
   const isLoggedIn = useAppSelector((state) => state.userInfo.isLoggedIn);
   const isChecking = useAppSelector((state) => state.userInfo.isChecking);
   const userEmail = useAppSelector((state) => state.userInfo.userEmail);
+  const userAvatar = useAppSelector((state) => state.userInfo.userAvatar);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // 组件挂载时，如果已登录但没有 userEmail，则获取用户信息
+  // 组件挂载时，如果已登录但没有用户信息，则获取用户信息
   useEffect(() => {
-    const fetchUserEmailIfNeeded = async () => {
-      if (isLoggedIn === true && !userEmail) {
+    const fetchUserInfoIfNeeded = async () => {
+      if (isLoggedIn === true && (!userEmail || !userAvatar)) {
         try {
           const userInfo = await getUserInfo();
-          if (userInfo && userInfo.email) {
+          if (userInfo?.email) {
             dispatch(setUserEmail(userInfo.email));
+          }
+          if (userInfo?.avatarUrl) {
+            dispatch(setUserAvatar(userInfo.avatarUrl));
           }
         } catch (error) {
           console.error('[GoogleAccountSetting] 获取用户信息失败:', error);
@@ -32,8 +36,8 @@ const GoogleAccountSetting: React.FC = () => {
       }
     };
 
-    fetchUserEmailIfNeeded();
-  }, [isLoggedIn, userEmail, dispatch]);
+    fetchUserInfoIfNeeded();
+  }, [isLoggedIn, userEmail, userAvatar, dispatch]);
 
   // 检查 Google OAuth2 登录状态（用于登录/登出后刷新状态）
   // 登录成功后自动拉取历史记录到 store
@@ -57,8 +61,11 @@ const GoogleAccountSetting: React.FC = () => {
           // 获取用户信息
           try {
             const userInfo = await getUserInfo();
-            if (userInfo && userInfo.email) {
+            if (userInfo?.email) {
               dispatch(setUserEmail(userInfo.email));
+            }
+            if (userInfo?.avatarUrl) {
+              dispatch(setUserAvatar(userInfo.avatarUrl));
             }
           } catch (error) {
             console.error('[GoogleAccountSetting] 获取用户信息失败:', error);
@@ -73,6 +80,7 @@ const GoogleAccountSetting: React.FC = () => {
         // 登出时清空历史记录和用户信息
         dispatch(setHistories([]));
         dispatch(setUserEmail(null));
+        dispatch(setUserAvatar(null));
       }
 
       return loggedIn;
@@ -212,39 +220,34 @@ const GoogleAccountSetting: React.FC = () => {
 
   return (
     <div className={styles.settingItem}>
-      <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('popup_googleAccount') || 'Google 账户'}</span>
-        <span className={styles.settingDescription}>
-          {isChecking || isLoggedIn === null
-            ? t('popup_checkingLoginStatus') || '检查登录状态中...'
-            : isLoggedIn === true
-            ?  `${userEmail}`
-            : t('popup_notLoggedIn') || '未登录'}
-        </span>
-      </label>
-      {isChecking || isLoggedIn === null ? (
-        <div className={styles.checkingStatus}>
-          <span className={styles.checkingText}>
-            {t('popup_checkingLoginStatus') || '检查登录状态中...'}
+      {isLoggedIn === true ? (
+        <div className={styles.accountActions}>
+          <span className={styles.avatarDisplay} aria-label={t('popup_loggedIn') || '已登录'}>
+            {userAvatar ? (
+              <img className={styles.avatarImage} src={userAvatar} alt={userEmail || 'Google'} />
+            ) : (
+              <span className={styles.avatarFallback}>
+                {(userEmail || 'G').charAt(0).toUpperCase()}
+              </span>
+            )}
           </span>
+          <Button
+            variant="primary"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            aria-label={t('popup_logout') || '退出登录'}
+            loading={isLoggingOut}>
+            {t('popup_logout') || '退出登录'}
+          </Button>
         </div>
-      ) : isLoggedIn === true ? (
-        <Button
-          variant="primary"
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          aria-label={t('popup_logout') || '登出'}
-          loading={isLoggingOut}>
-          {t('popup_logout') || '登出'}
-        </Button>
       ) : (
         <Button
           variant="primary"
           onClick={handleLogin}
-          disabled={isLoggingIn}
-          aria-label={t('popup_login') || '登录'}
+          disabled={isLoggingIn || isChecking || isLoggedIn === null}
+          aria-label={t('popup_loginWithGoogle') || '通过Google登录'}
           loading={isLoggingIn}>
-          {t('popup_login') || '登录'}
+          {t('popup_loginWithGoogle') || '通过Google登录'}
         </Button>
       )}
       {loginError && (
