@@ -7,6 +7,7 @@ import '../utils/iconfont.js';
 import { store, persistor } from '../store';
 import ThemeButton from '../components/ThemeButton';
 import { useTheme } from '../hooks/useTheme';
+import { useI18n } from '../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setChecking, setLoggedIn, setHistories, setLoadingHistories, setUserEmail } from '../store';
 import { isLoggedIn as checkIsLoggedIn, loadHistoryFromDriveWithToken, getUserInfo, startAutoSync, stopAutoSync } from '../services/syncService';
@@ -17,10 +18,15 @@ import Loading from '../components/Loading';
 import SettingsPage, { SettingsButton } from '../components/Settings';
 
 const NewTabApp: React.FC = () => {
+  const { t } = useI18n();
   const { isDarkMode, toggleTheme } = useTheme();
   const themeColor = useAppSelector((state) => state.config.themeColor);
   const dispatch = useAppDispatch();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = t('extensionName');
+  }, [t]);
 
   // 应用初始化时检查登录状态，登录成功后拉取历史记录
   useEffect(() => {

@@ -21,15 +21,15 @@ const LinkOpenModeSetting: React.FC = () => {
   return (
     <div className={styles.settingItem}>
       <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('settings.linkOpenMode')}</span>
+        <span className={styles.settingText}>{t('settings_linkOpenMode')}</span>
         <span className={styles.settingDescription}>
-          {isDirectLink ? t('settings.linkOpenModeCurrentTab') : t('settings.linkOpenModeNewTab')}
+          {isDirectLink ? t('settings_linkOpenModeCurrentTab') : t('settings_linkOpenModeNewTab')}
         </span>
       </label>
       <Switch
         checked={isDirectLink}
         onChange={handleToggleDirectLink}
-        ariaLabel={t('settings.toggleLinkOpenMode')}
+        ariaLabel={t('settings_toggleLinkOpenMode')}
       />
     </div>
   );

@@ -95,25 +95,25 @@ const Search: React.FC = () => {
   const initialEngines: SearchEngine[] = [
     {
       key: 'default',
-      name: t('search.defaultEngine'),
+      name: t('search_defaultEngine'),
       favicon: 'icon/default-search.svg',
       searchFunction: defaultSearchFunction,
     },
     {
       key: 'google',
-      name: t('engines.google'),
+      name: t('engines_google'),
       favicon: 'icon/google.svg',
       searchFunction: createWebSearchFunction('https://www.google.com/search?', 'q'),
     },
     {
       key: 'bing',
-      name: t('engines.bing'),
+      name: t('engines_bing'),
       favicon: 'icon/bing.svg',
       searchFunction: createWebSearchFunction('https://www.bing.com/search?', 'q'),
     },
     {
       key: 'baidu',
-      name: t('engines.baidu'),
+      name: t('engines_baidu'),
       favicon: 'icon/baidu.svg',
       searchFunction: createWebSearchFunction('https://www.baidu.com/s?', 'wd'),
     },
@@ -334,7 +334,7 @@ const Search: React.FC = () => {
           id="searchInput"
           className={styles.searchInput}
           type="text"
-          placeholder={t('search.placeholder')}
+          placeholder={t('search_placeholder')}
           value={searchContent}
           onChange={(e) => setSearchContent(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -345,7 +345,7 @@ const Search: React.FC = () => {
             iconOnly
             size="small"
             onClick={handleClear}
-            aria-label={t('search.clearSearch')}
+            aria-label={t('search_clearSearch')}
             type="button"
             className={styles.clearButton}>
             <svg className={`icon ${styles.clearIcon}`} aria-hidden="true">
@@ -359,7 +359,7 @@ const Search: React.FC = () => {
           <div className={styles.suggestionsList} ref={suggestionsRef}>
             {isLoadingSuggestions && (
               <div className={styles.suggestionItem}>
-                <span>{t('search.loading')}</span>
+                <span>{t('search_loading')}</span>
               </div>
             )}
             {!isLoadingSuggestions &&

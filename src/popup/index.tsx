@@ -12,6 +12,10 @@ const WelcomePage: React.FC = () => {
   const { t } = useI18n();
   useTheme(); // 确保主题同步
 
+  useEffect(() => {
+    document.title = t('extensionName');
+  }, [t]);
+
   return (
     <div className={styles.container}>
       <div className={styles.welcomeContainer}>
@@ -29,9 +33,9 @@ const WelcomePage: React.FC = () => {
               />
             </svg>
           </div>
-          <h1 className={styles.welcomeTitle}>{t('popup.welcomeMessage')}</h1>
+          <h1 className={styles.welcomeTitle}>{t('popup_welcomeMessage')}</h1>
           <p className={styles.welcomeDescription}>
-            {t('popup.welcome')}
+            {t('popup_welcome')}
           </p>
         </div>
       </div>

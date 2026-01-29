@@ -1,0 +1,329 @@
+{
+  "extensionName": {
+    "message": "New Tab – Minimal",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "A minimal new tab page with a search bar and settings",
+    "description": "Extension description"
+  },
+  "settings_title": {
+    "message": "Settings"
+  },
+  "settings_language": {
+    "message": "Language"
+  },
+  "settings_languageZhCN": {
+    "message": "Chinese"
+  },
+  "settings_languageEnUS": {
+    "message": "English"
+  },
+  "settings_themeColor": {
+    "message": "Theme Color"
+  },
+  "settings_themeColorDescription": {
+    "message": "System theme color"
+  },
+  "settings_linkOpenMode": {
+    "message": "Link Open Mode"
+  },
+  "settings_linkOpenModeCurrentTab": {
+    "message": "Open in current tab"
+  },
+  "settings_linkOpenModeNewTab": {
+    "message": "Open in new tab"
+  },
+  "settings_closeSettings": {
+    "message": "Close settings"
+  },
+  "settings_openSettings": {
+    "message": "Open settings"
+  },
+  "settings_selectLanguage": {
+    "message": "Select language"
+  },
+  "settings_selectThemeColor": {
+    "message": "Select theme color"
+  },
+  "settings_toggleLinkOpenMode": {
+    "message": "Toggle link open mode"
+  },
+  "search_placeholder": {
+    "message": "Search..."
+  },
+  "search_clearSearch": {
+    "message": "Clear search"
+  },
+  "search_loading": {
+    "message": "Loading..."
+  },
+  "search_defaultEngine": {
+    "message": "Default"
+  },
+  "engines_google": {
+    "message": "Google"
+  },
+  "engines_bing": {
+    "message": "Bing"
+  },
+  "engines_baidu": {
+    "message": "Baidu"
+  },
+  "configInfo_currentTheme": {
+    "message": "Current Theme:"
+  },
+  "configInfo_darkTheme": {
+    "message": "Dark"
+  },
+  "configInfo_lightTheme": {
+    "message": "Light"
+  },
+  "configInfo_lastModified": {
+    "message": "Last Modified:"
+  },
+  "configInfo_modifiedTime": {
+    "message": "Modified Time:"
+  },
+  "popup_welcomeMessage": {
+    "message": "Welcome to Minimal NewTab!"
+  },
+  "popup_sendMessage": {
+    "message": "Send Message"
+  },
+  "popup_welcome": {
+    "message": "Welcome"
+  },
+  "popup_syncTitle": {
+    "message": "Config Sync"
+  },
+  "popup_syncDescription": {
+    "message": "Cloud configuration"
+  },
+  "popup_loginSubtitle": {
+    "message": "Sign in with your Google account to sync your data"
+  },
+  "popup_loginButton": {
+    "message": "Sign in with Google"
+  },
+  "popup_loggingIn": {
+    "message": "Signing in..."
+  },
+  "popup_loginHint": {
+    "message": "After signing in, your configuration will sync to the cloud"
+  },
+  "popup_synced": {
+    "message": "Synced"
+  },
+  "popup_notSynced": {
+    "message": "Not Synced"
+  },
+  "popup_syncing": {
+    "message": "Syncing..."
+  },
+  "popup_syncSuccess": {
+    "message": "Sync successful"
+  },
+  "popup_syncError": {
+    "message": "Sync failed"
+  },
+  "popup_syncNow": {
+    "message": "Sync Now"
+  },
+  "popup_syncFailed": {
+    "message": "Sync failed, please try again"
+  },
+  "popup_logout": {
+    "message": "Sign out"
+  },
+  "popup_showHistory": {
+    "message": "History"
+  },
+  "popup_hideHistory": {
+    "message": "Hide Sync History"
+  },
+  "popup_syncHistory": {
+    "message": "Sync History"
+  },
+  "popup_noHistory": {
+    "message": "No sync history"
+  },
+  "popup_historyTypeUpload": {
+    "message": "Upload"
+  },
+  "popup_historyTypeDownload": {
+    "message": "Download"
+  },
+  "popup_restore": {
+    "message": "Restore"
+  },
+  "popup_restoring": {
+    "message": "Restoring..."
+  },
+  "popup_restoreFailed": {
+    "message": "Restore failed, please try again"
+  },
+  "popup_justNow": {
+    "message": "Just now"
+  },
+  "popup_minutesAgo": {
+    "message": "$count$ minutes ago",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_hoursAgo": {
+    "message": "$count$ hours ago",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_daysAgo": {
+    "message": "$count$ days ago",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_delete": {
+    "message": "Delete"
+  },
+  "popup_deleting": {
+    "message": "Deleting..."
+  },
+  "popup_deleteFailed": {
+    "message": "Delete failed"
+  },
+  "popup_confirmDelete": {
+    "message": "Are you sure you want to delete this sync record?"
+  },
+  "popup_export": {
+    "message": "Export"
+  },
+  "popup_exporting": {
+    "message": "Exporting..."
+  },
+  "popup_exportFailed": {
+    "message": "Export failed"
+  },
+  "popup_import": {
+    "message": "Import"
+  },
+  "popup_importing": {
+    "message": "Importing..."
+  },
+  "popup_importFailed": {
+    "message": "Import failed"
+  },
+  "popup_importSuccess": {
+    "message": "Successfully imported $count$ records",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_importPartial": {
+    "message": "Partially imported: $success$ succeeded, $failed$ failed",
+    "placeholders": {
+      "success": {
+        "content": "$1"
+      },
+      "failed": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_clearAll": {
+    "message": "Clear All"
+  },
+  "popup_clearing": {
+    "message": "Clearing..."
+  },
+  "popup_clearAllFailed": {
+    "message": "Clear failed"
+  },
+  "popup_confirmClearAll": {
+    "message": "Are you sure you want to clear all sync records? This action cannot be undone."
+  },
+  "popup_refresh": {
+    "message": "Refresh"
+  },
+  "popup_refreshing": {
+    "message": "Refreshing..."
+  },
+  "popup_refreshFailed": {
+    "message": "Refresh failed"
+  },
+  "popup_current": {
+    "message": "Current"
+  },
+  "popup_loginCancelled": {
+    "message": "Login cancelled"
+  },
+  "popup_accessTokenError": {
+    "message": "Unable to get access token"
+  },
+  "popup_getUserInfoError": {
+    "message": "Failed to get user information"
+  },
+  "popup_loginFailed": {
+    "message": "Login failed, please try again"
+  },
+  "popup_checkAuthStatusError": {
+    "message": "Failed to check login status"
+  },
+  "popup_logoutError": {
+    "message": "Sign out failed"
+  },
+  "popup_checkingLoginStatus": {
+    "message": "Checking login status..."
+  },
+  "popup_pleaseLoginGoogle": {
+    "message": "Please sign in with Google account"
+  },
+  "popup_loginToUseSync": {
+    "message": "To use sync features, please sign in with your Google account first."
+  },
+  "popup_loginDriveSync": {
+    "message": "After signing in, you can sync configurations and history using Google Drive."
+  },
+  "popup_login": {
+    "message": "Sign in"
+  },
+  "popup_googleAccount": {
+    "message": "Google Account"
+  },
+  "popup_loggedIn": {
+    "message": "Signed in"
+  },
+  "popup_notLoggedIn": {
+    "message": "Not signed in"
+  },
+  "popup_loggingOut": {
+    "message": "Signing out..."
+  },
+  "popup_confirmLogout": {
+    "message": "Are you sure you want to sign out? You will not be able to sync configurations after signing out."
+  },
+  "popup_logoutSuccess": {
+    "message": "Successfully signed out"
+  },
+  "popup_logoutFailed": {
+    "message": "Sign out failed"
+  },
+  "popup_loadHistoryFailed": {
+    "message": "Failed to load sync history, please try again"
+  },
+  "popup_checkStatusFailed": {
+    "message": "Failed to check login status, please try again"
+  },
+  "popup_pleaseLoginToUseSync": {
+    "message": "Please sign in with Google account to use sync features"
+  }
+}

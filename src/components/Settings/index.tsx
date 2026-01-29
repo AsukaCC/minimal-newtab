@@ -78,12 +78,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ isOpen, onClose }) => {
         <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
           {/* 设置标题区域 */}
           <div className={styles.settingsHeader}>
-            <h2 className={styles.settingsTitle}>{t('settings.title')}</h2>
+            <h2 className={styles.settingsTitle}>{t('settings_title')}</h2>
             <Button
               variant="primary"
               iconOnly
               onClick={onClose}
-              aria-label={t('settings.closeSettings')}
+              aria-label={t('settings_closeSettings')}
               className={`${styles.closeButton} closeButton`}>
               <svg className={`icon ${styles.closeIcon}`} aria-hidden="true">
                 <use xlinkHref="#icon-guanbi"></use>
@@ -116,7 +116,7 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick }) => {
       variant="primary"
       iconOnly
       onClick={onClick}
-      aria-label={t('settings.openSettings')}
+      aria-label={t('settings_openSettings')}
       className={styles.settingsButton}>
       <svg className={`icon ${styles.settingsIcon}`} aria-hidden="true">
         <use xlinkHref="#icon-shezhi"></use>

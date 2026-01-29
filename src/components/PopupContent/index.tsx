@@ -20,13 +20,13 @@ export const PopupContent: React.FC<PopupContentProps> = ({
 
   return (
     <div className={styles.content}>
-      <p>{message || t('popup.welcomeMessage')}</p>
+      <p>{message || t('popup_welcomeMessage')}</p>
       <Button
         variant="primary"
         onClick={handleSendMessage}
         disabled={loading}
         loading={loading}>
-        {t('popup.sendMessage')}
+        {t('popup_sendMessage')}
       </Button>
     </div>
   );

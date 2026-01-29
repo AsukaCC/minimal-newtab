@@ -85,7 +85,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       console.error('[SyncHistoryModal] 刷新历史记录失败:', err);
       const errorMessage = err?.message || '';
       if (errorMessage.includes('权限不足') || errorMessage.includes('insufficient')) {
-        setError(t('popup.pleaseLoginToUseSync'));
+        setError(t('popup_pleaseLoginToUseSync'));
       }
       hasTriedLoadRef.current = true;
     } finally {
@@ -186,14 +186,14 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
     try {
       const success = await autoSyncConfig();
       if (!success) {
-        setError(t('popup.syncFailed'));
+        setError(t('popup_syncFailed'));
       } else {
         // 手动同步成功后，重置全局自动同步定时器并刷新历史记录
         resetAutoSyncTimer();
         await refreshHistory();
       }
     } catch (err: any) {
-      setError(err.message || t('popup.syncFailed'));
+      setError(err.message || t('popup_syncFailed'));
     } finally {
       setIsSyncing(false);
     }
@@ -210,12 +210,12 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
     try {
       const success = await restoreFromHistory(historyId);
       if (!success) {
-        setError(t('popup.restoreFailed'));
+        setError(t('popup_restoreFailed'));
       }
       // restoreFromHistory 已通过 historyBatchManager.commit() 更新了 store，无需刷新
     } catch (err: any) {
       console.error('[SyncHistoryModal] Restore failed:', err);
-      setError(err.message || t('popup.restoreFailed'));
+      setError(err.message || t('popup_restoreFailed'));
     } finally {
       setIsRestoring(null);
     }
@@ -229,13 +229,13 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
     const diffDays = now.diff(date, 'day');
 
     if (diffMinutes < 1) {
-      return t('popup.justNow');
+      return t('popup_justNow');
     } else if (diffMinutes < 60) {
-      return t('popup.minutesAgo').replace('{count}', diffMinutes.toString());
+      return t('popup_minutesAgo', diffMinutes.toString());
     } else if (diffHours < 24) {
-      return t('popup.hoursAgo').replace('{count}', diffHours.toString());
+      return t('popup_hoursAgo', diffHours.toString());
     } else if (diffDays < 7) {
-      return t('popup.daysAgo').replace('{count}', diffDays.toString());
+      return t('popup_daysAgo', diffDays.toString());
     } else {
       return date.format('YYYY-MM-DD HH:mm');
     }
@@ -246,7 +246,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       return;
     }
 
-    if (!confirm(t('popup.confirmDelete'))) {
+    if (!confirm(t('popup_confirmDelete'))) {
       return;
     }
 
@@ -261,11 +261,11 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
         }
         // deleteSyncHistory 已通过 historyBatchManager.commit() 更新了 store，无需刷新
       } else {
-        setError(t('popup.deleteFailed'));
+        setError(t('popup_deleteFailed'));
       }
     } catch (err: any) {
       console.error('[SyncHistoryModal] Delete failed:', err);
-      setError(err.message || t('popup.deleteFailed'));
+      setError(err.message || t('popup_deleteFailed'));
     } finally {
       setIsDeleting(null);
     }
@@ -292,7 +292,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error('[SyncHistoryModal] Export failed:', err);
-      setError(err.message || t('popup.exportFailed'));
+      setError(err.message || t('popup_exportFailed'));
     } finally {
       setIsExporting(false);
     }
@@ -316,12 +316,12 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       const result = await importSyncHistory(text);
 
       if (result.failed > 0) {
-        setError(t('popup.importPartial').replace('{success}', result.success.toString()).replace('{failed}', result.failed.toString()));
+        setError(t('popup_importPartial', [result.success.toString(), result.failed.toString()]));
       }
       // importSyncHistory 已通过 historyBatchManager.commit() 或直接 dispatch 更新了 store，无需刷新
     } catch (err: any) {
       console.error('[SyncHistoryModal] Import failed:', err);
-      setError(err.message || t('popup.importFailed'));
+      setError(err.message || t('popup_importFailed'));
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
@@ -350,7 +350,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       await refreshHistory();
     } catch (err: any) {
       console.error('[SyncHistoryModal] 刷新历史记录失败:', err);
-      setError(err.message || t('popup.refreshFailed'));
+      setError(err.message || t('popup_refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
@@ -361,7 +361,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       return;
     }
 
-    if (!confirm(t('popup.confirmClearAll'))) {
+    if (!confirm(t('popup_confirmClearAll'))) {
       return;
     }
 
@@ -374,12 +374,12 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       if (success) {
         setCurrentHistoryId(null);
       } else {
-        setError(t('popup.clearAllFailed'));
+        setError(t('popup_clearAllFailed'));
         isClearedByUserRef.current = false;
       }
     } catch (err: any) {
       console.error('[SyncHistoryModal] Clear all failed:', err);
-      setError(err.message || t('popup.clearAllFailed'));
+      setError(err.message || t('popup_clearAllFailed'));
       isClearedByUserRef.current = false;
     } finally {
       setIsClearing(false);
@@ -396,12 +396,12 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
       <div className={styles.overlay} onClick={onClose} />
       <div ref={modalRef} className={styles.modal}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{t('popup.syncHistory')}</h2>
+          <h2 className={styles.modalTitle}>{t('popup_syncHistory')}</h2>
           <Button
             variant="primary"
             iconOnly
             onClick={onClose}
-            aria-label={t('settings.closeSettings')}
+            aria-label={t('settings_closeSettings')}
             className={`${styles.closeButton} closeButton`}>
             <svg className={styles.closeIcon} aria-hidden="true" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -414,7 +414,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
           {(isLoggedIn === null || isChecking) && (
             <div className={styles.syncSection}>
               <div className={styles.syncStatus}>
-                <span>{t('popup.checkingLoginStatus')}</span>
+                <span>{t('popup_checkingLoginStatus')}</span>
               </div>
             </div>
           )}
@@ -423,12 +423,12 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
             <div className={styles.syncSection}>
               <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                 <div style={{ fontSize: '16px', marginBottom: '12px', fontWeight: '500' }}>
-                  {t('popup.pleaseLoginGoogle')}
+                  {t('popup_pleaseLoginGoogle')}
                 </div>
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary, #666)', lineHeight: '1.6' }}>
-                  {t('popup.pleaseLoginToUseSync')}
+                  {t('popup_pleaseLoginToUseSync')}
                   <br />
-                  {t('popup.loginDriveSync')}
+                  {t('popup_loginDriveSync')}
                 </div>
               </div>
             </div>
@@ -444,7 +444,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                     size="small"
                     onClick={handleRefreshHistory}
                     disabled={isAnyOperationInProgress || !isLoggedIn}
-                    title={t('popup.refresh')}
+                    title={t('popup_refresh')}
                     loading={isRefreshing}
                     className={`${styles.refreshButton} refreshButton`}
                     icon={
@@ -461,21 +461,21 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                     size="small"
                     onClick={handleManualSync}
                     disabled={isAnyOperationInProgress || isLoggedIn !== true}
-                    title={t('popup.syncNow')}
+                    title={t('popup_syncNow')}
                     loading={isSyncing}>
                     {isSyncing ? null : (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
                       </svg>
                     )}
-                    {t('popup.syncNow')}
+                    {t('popup_syncNow')}
                   </Button>
                   <Button
                     variant="info"
                     size="small"
                     onClick={handleExport}
                     disabled={isAnyOperationInProgress || histories.length === 0}
-                    title={t('popup.export')}
+                    title={t('popup_export')}
                     loading={isExporting}
                     icon={
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -484,14 +484,14 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
                     }>
-                    {isExporting ? t('popup.exporting') : t('popup.export')}
+                    {isExporting ? t('popup_exporting') : t('popup_export')}
                   </Button>
                   <Button
                     variant="info"
                     size="small"
                     onClick={triggerImport}
                     disabled={isAnyOperationInProgress}
-                    title={t('popup.import')}
+                    title={t('popup_import')}
                     loading={isImporting}
                     icon={
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -500,14 +500,14 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
                     }>
-                    {isImporting ? t('popup.importing') : t('popup.import')}
+                    {isImporting ? t('popup_importing') : t('popup_import')}
                   </Button>
                   <Button
                     variant="danger"
                     size="small"
                     onClick={handleClearAll}
                     disabled={isAnyOperationInProgress || histories.length === 0}
-                    title={t('popup.clearAll')}
+                    title={t('popup_clearAll')}
                     loading={isClearing}
                     icon={
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -515,7 +515,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                       </svg>
                     }>
-                    {isClearing ? t('popup.clearing') : t('popup.clearAll')}
+                    {isClearing ? t('popup_clearing') : t('popup_clearAll')}
                   </Button>
                   <input
                     ref={fileInputRef}
@@ -530,7 +530,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
 
               <div className={styles.historySection}>
                 {histories.length === 0 ? (
-                  <div className={styles.emptyHistory}>{t('popup.noHistory')}</div>
+                  <div className={styles.emptyHistory}>{t('popup_noHistory')}</div>
                 ) : (
                   <div className={styles.historyList}>
                     {histories.slice(0, 4).map((history) => {
@@ -545,7 +545,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                             <div className={styles.historyType}>
                               {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
                               {isCurrent && (
-                                <span className={styles.currentBadge}> {t('popup.current')}</span>
+                                <span className={styles.currentBadge}> {t('popup_current')}</span>
                               )}
                             </div>
                             <div className={styles.historyTime}>
@@ -559,7 +559,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                                 size="small"
                                 onClick={() => handleRestore(history.id)}
                                 disabled={isAnyOperationInProgress}
-                                title={t('popup.restore')}
+                                title={t('popup_restore')}
                                 loading={isRestoring === history.id}
                                 icon={
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -569,14 +569,14 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                                     <path d="M3 21v-5h5"></path>
                                   </svg>
                                 }>
-                                {isRestoring === history.id ? t('popup.restoring') : t('popup.restore')}
+                                {isRestoring === history.id ? t('popup_restoring') : t('popup_restore')}
                               </Button>
                               <Button
                                 variant="danger"
                                 size="small"
                                 onClick={() => handleDelete(history.id)}
                                 disabled={isAnyOperationInProgress}
-                                title={t('popup.delete')}
+                                title={t('popup_delete')}
                                 loading={isDeleting === history.id}
                                 icon={
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -584,7 +584,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose }) 
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                   </svg>
                                 }>
-                                {isDeleting === history.id ? t('popup.deleting') : t('popup.delete')}
+                                {isDeleting === history.id ? t('popup_deleting') : t('popup_delete')}
                               </Button>
                             </div>
                           )}

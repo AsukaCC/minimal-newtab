@@ -20,8 +20,8 @@ const ThemeColorSetting: React.FC = () => {
   return (
     <div className={styles.settingItem}>
       <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('settings.themeColor')}</span>
-        <span className={styles.settingDescription}>{t('settings.themeColorDescription')}</span>
+        <span className={styles.settingText}>{t('settings_themeColor')}</span>
+        <span className={styles.settingDescription}>{t('settings_themeColorDescription')}</span>
       </label>
       <div className={styles.themeColorPicker}>
         <input
@@ -29,7 +29,7 @@ const ThemeColorSetting: React.FC = () => {
           value={themeColor || '#667eea'}
           onChange={(e) => handleThemeColorChange(e.target.value)}
           className={styles.colorInput}
-          aria-label={t('settings.selectThemeColor')}
+          aria-label={t('settings_selectThemeColor')}
         />
       </div>
     </div>

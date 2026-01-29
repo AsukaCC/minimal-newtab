@@ -131,7 +131,7 @@ const GoogleAccountSetting: React.FC = () => {
           }
         }, 100);
       } catch (err: any) {
-        const errorMessage = err.message || t('popup.syncFailed') || '登录失败';
+        const errorMessage = err.message || t('popup_syncFailed') || '登录失败';
 
         // 检查是否是用户取消登录
         const isUserCancelled = errorMessage.includes('用户取消了登录') ||
@@ -178,7 +178,7 @@ const GoogleAccountSetting: React.FC = () => {
       return;
     }
 
-    if (!confirm(t('popup.confirmLogout') || '确定要登出吗？')) {
+    if (!confirm(t('popup_confirmLogout') || '确定要登出吗？')) {
       return;
     }
 
@@ -199,7 +199,7 @@ const GoogleAccountSetting: React.FC = () => {
         dispatch(setLoggedIn(false));
       } catch (err: any) {
         console.error('[GoogleAccountSetting] 登出失败:', err);
-        const errorMessage = err.message || t('popup.logoutFailed') || '登出失败';
+        const errorMessage = err.message || t('popup_logoutFailed') || '登出失败';
         setLoginError(errorMessage);
 
         // 即使登出失败，也尝试更新登录状态（可能 token 已经被清除）（异步执行）
@@ -213,19 +213,19 @@ const GoogleAccountSetting: React.FC = () => {
   return (
     <div className={styles.settingItem}>
       <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('popup.googleAccount') || 'Google 账户'}</span>
+        <span className={styles.settingText}>{t('popup_googleAccount') || 'Google 账户'}</span>
         <span className={styles.settingDescription}>
           {isChecking || isLoggedIn === null
-            ? t('popup.checkingLoginStatus') || '检查登录状态中...'
+            ? t('popup_checkingLoginStatus') || '检查登录状态中...'
             : isLoggedIn === true
             ?  `${userEmail}`
-            : t('popup.notLoggedIn') || '未登录'}
+            : t('popup_notLoggedIn') || '未登录'}
         </span>
       </label>
       {isChecking || isLoggedIn === null ? (
         <div className={styles.checkingStatus}>
           <span className={styles.checkingText}>
-            {t('popup.checkingLoginStatus') || '检查登录状态中...'}
+            {t('popup_checkingLoginStatus') || '检查登录状态中...'}
           </span>
         </div>
       ) : isLoggedIn === true ? (
@@ -233,18 +233,18 @@ const GoogleAccountSetting: React.FC = () => {
           variant="primary"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          aria-label={t('popup.logout') || '登出'}
+          aria-label={t('popup_logout') || '登出'}
           loading={isLoggingOut}>
-          {t('popup.logout') || '登出'}
+          {t('popup_logout') || '登出'}
         </Button>
       ) : (
         <Button
           variant="primary"
           onClick={handleLogin}
           disabled={isLoggingIn}
-          aria-label={t('popup.login') || '登录'}
+          aria-label={t('popup_login') || '登录'}
           loading={isLoggingIn}>
-          {t('popup.login') || '登录'}
+          {t('popup_login') || '登录'}
         </Button>
       )}
       {loginError && (

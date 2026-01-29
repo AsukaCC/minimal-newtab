@@ -1,0 +1,329 @@
+{
+  "extensionName": {
+    "message": "新标签页 – Minimal",
+    "description": "扩展名称"
+  },
+  "extensionDescription": {
+    "message": "一个带搜索栏和设置的极简新标签页",
+    "description": "扩展描述"
+  },
+  "settings_title": {
+    "message": "设置"
+  },
+  "settings_language": {
+    "message": "语言"
+  },
+  "settings_languageZhCN": {
+    "message": "中文"
+  },
+  "settings_languageEnUS": {
+    "message": "English"
+  },
+  "settings_themeColor": {
+    "message": "主题色"
+  },
+  "settings_themeColorDescription": {
+    "message": "系统主题色"
+  },
+  "settings_linkOpenMode": {
+    "message": "链接打开方式"
+  },
+  "settings_linkOpenModeCurrentTab": {
+    "message": "当前标签页打开"
+  },
+  "settings_linkOpenModeNewTab": {
+    "message": "新标签页打开"
+  },
+  "settings_closeSettings": {
+    "message": "关闭设置"
+  },
+  "settings_openSettings": {
+    "message": "打开设置"
+  },
+  "settings_selectLanguage": {
+    "message": "选择语言"
+  },
+  "settings_selectThemeColor": {
+    "message": "选择主题色"
+  },
+  "settings_toggleLinkOpenMode": {
+    "message": "切换链接打开方式"
+  },
+  "search_placeholder": {
+    "message": "搜索..."
+  },
+  "search_clearSearch": {
+    "message": "清空搜索内容"
+  },
+  "search_loading": {
+    "message": "加载中..."
+  },
+  "search_defaultEngine": {
+    "message": "默认"
+  },
+  "engines_google": {
+    "message": "Google"
+  },
+  "engines_bing": {
+    "message": "Bing"
+  },
+  "engines_baidu": {
+    "message": "百度"
+  },
+  "configInfo_currentTheme": {
+    "message": "当前主题:"
+  },
+  "configInfo_darkTheme": {
+    "message": "暗色"
+  },
+  "configInfo_lightTheme": {
+    "message": "亮色"
+  },
+  "configInfo_lastModified": {
+    "message": "最后修改:"
+  },
+  "configInfo_modifiedTime": {
+    "message": "修改时间:"
+  },
+  "popup_welcomeMessage": {
+    "message": "欢迎使用 Minimal NewTab！"
+  },
+  "popup_sendMessage": {
+    "message": "发送消息"
+  },
+  "popup_welcome": {
+    "message": "欢迎使用"
+  },
+  "popup_syncTitle": {
+    "message": "配置同步"
+  },
+  "popup_syncDescription": {
+    "message": "云端配置"
+  },
+  "popup_loginSubtitle": {
+    "message": "使用 Google 账号登录以同步您的数据"
+  },
+  "popup_loginButton": {
+    "message": "使用 Google 登录"
+  },
+  "popup_loggingIn": {
+    "message": "登录中..."
+  },
+  "popup_loginHint": {
+    "message": "登录后，您的配置将在云端同步"
+  },
+  "popup_synced": {
+    "message": "已同步"
+  },
+  "popup_notSynced": {
+    "message": "未同步"
+  },
+  "popup_syncing": {
+    "message": "同步中..."
+  },
+  "popup_syncSuccess": {
+    "message": "同步成功"
+  },
+  "popup_syncError": {
+    "message": "同步失败"
+  },
+  "popup_syncNow": {
+    "message": "立即同步"
+  },
+  "popup_syncFailed": {
+    "message": "同步失败，请重试"
+  },
+  "popup_logout": {
+    "message": "退出登录"
+  },
+  "popup_showHistory": {
+    "message": "历史"
+  },
+  "popup_hideHistory": {
+    "message": "隐藏同步记录"
+  },
+  "popup_syncHistory": {
+    "message": "同步记录"
+  },
+  "popup_noHistory": {
+    "message": "暂无同步记录"
+  },
+  "popup_historyTypeUpload": {
+    "message": "上传"
+  },
+  "popup_historyTypeDownload": {
+    "message": "下载"
+  },
+  "popup_restore": {
+    "message": "恢复"
+  },
+  "popup_restoring": {
+    "message": "恢复中..."
+  },
+  "popup_restoreFailed": {
+    "message": "恢复失败，请重试"
+  },
+  "popup_justNow": {
+    "message": "刚刚"
+  },
+  "popup_minutesAgo": {
+    "message": "$count$ 分钟前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_hoursAgo": {
+    "message": "$count$ 小时前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_daysAgo": {
+    "message": "$count$ 天前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_delete": {
+    "message": "删除"
+  },
+  "popup_deleting": {
+    "message": "删除中..."
+  },
+  "popup_deleteFailed": {
+    "message": "删除失败"
+  },
+  "popup_confirmDelete": {
+    "message": "确定要删除这条同步记录吗？"
+  },
+  "popup_export": {
+    "message": "导出"
+  },
+  "popup_exporting": {
+    "message": "导出中..."
+  },
+  "popup_exportFailed": {
+    "message": "导出失败"
+  },
+  "popup_import": {
+    "message": "导入"
+  },
+  "popup_importing": {
+    "message": "导入中..."
+  },
+  "popup_importFailed": {
+    "message": "导入失败"
+  },
+  "popup_importSuccess": {
+    "message": "成功导入 $count$ 条记录",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_importPartial": {
+    "message": "部分导入成功：成功 $success$ 条，失败 $failed$ 条",
+    "placeholders": {
+      "success": {
+        "content": "$1"
+      },
+      "failed": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_clearAll": {
+    "message": "清空"
+  },
+  "popup_clearing": {
+    "message": "清空中..."
+  },
+  "popup_clearAllFailed": {
+    "message": "清空失败"
+  },
+  "popup_confirmClearAll": {
+    "message": "确定要清空所有同步记录吗？此操作不可恢复。"
+  },
+  "popup_refresh": {
+    "message": "刷新"
+  },
+  "popup_refreshing": {
+    "message": "刷新中..."
+  },
+  "popup_refreshFailed": {
+    "message": "刷新失败"
+  },
+  "popup_current": {
+    "message": "当前"
+  },
+  "popup_loginCancelled": {
+    "message": "登录被取消"
+  },
+  "popup_accessTokenError": {
+    "message": "无法获取访问令牌"
+  },
+  "popup_getUserInfoError": {
+    "message": "获取用户信息失败"
+  },
+  "popup_loginFailed": {
+    "message": "登录失败，请重试"
+  },
+  "popup_checkAuthStatusError": {
+    "message": "检查登录状态失败"
+  },
+  "popup_logoutError": {
+    "message": "登出失败"
+  },
+  "popup_checkingLoginStatus": {
+    "message": "检查登录状态中..."
+  },
+  "popup_pleaseLoginGoogle": {
+    "message": "请先登录 Google 账户"
+  },
+  "popup_loginToUseSync": {
+    "message": "要使用同步功能，请先登录您的 Google 账户。"
+  },
+  "popup_loginDriveSync": {
+    "message": "登录后即可使用 Google Drive 同步配置和历史记录。"
+  },
+  "popup_login": {
+    "message": "登录"
+  },
+  "popup_googleAccount": {
+    "message": "Google 账户"
+  },
+  "popup_loggedIn": {
+    "message": "已登录"
+  },
+  "popup_notLoggedIn": {
+    "message": "未登录"
+  },
+  "popup_loggingOut": {
+    "message": "登出中..."
+  },
+  "popup_confirmLogout": {
+    "message": "确定要登出吗？登出后将无法同步配置。"
+  },
+  "popup_logoutSuccess": {
+    "message": "已成功登出"
+  },
+  "popup_logoutFailed": {
+    "message": "登出失败"
+  },
+  "popup_loadHistoryFailed": {
+    "message": "加载历史记录失败，请重试"
+  },
+  "popup_checkStatusFailed": {
+    "message": "检查登录状态失败，请重试"
+  },
+  "popup_pleaseLoginToUseSync": {
+    "message": "请先登录 Google 账户以使用同步功能"
+  }
+}

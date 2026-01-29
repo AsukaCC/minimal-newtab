@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { useAppDispatch } from '../../../../store/hooks';
 import { setLanguage } from '../../../../store';
 import Select, { type SelectOption } from '../../../Select';
 import { useI18n } from '../../../../hooks/useI18n';
@@ -14,6 +14,12 @@ const LanguageSetting: React.FC<LanguageSettingProps> = ({ onSelectOpenChange })
   const { t, language } = useI18n();
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
+  // 语言选项
+  const languageOptions: SelectOption[] = [
+    { value: 'zh-CN', label: t('settings_languageZhCN') },
+    { value: 'en-US', label: t('settings_languageEnUS') },
+  ];
+
   const handleLanguageChange = (lang: string) => {
     dispatch(setLanguage(lang));
   };
@@ -23,28 +29,21 @@ const LanguageSetting: React.FC<LanguageSettingProps> = ({ onSelectOpenChange })
     onSelectOpenChange?.(isOpen);
   };
 
-  // 语言选项
-  const languageOptions: SelectOption[] = [
-    { value: 'zh-CN', label: t('settings.languageZhCN') },
-    { value: 'en-US', label: t('settings.languageEnUS') },
-  ];
-
   // 获取当前语言的显示名称
-  const currentLanguageLabel = languageOptions.find(opt => opt.value === language)?.label || language;
+  const currentLanguageLabel =
+    languageOptions.find((opt) => opt.value === language)?.label || language;
 
   return (
     <div className={`${styles.settingItem} ${styles.settingItemWithSelect} ${isSelectOpen ? styles.selectOpen : ''}`}>
       <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('settings.language')}</span>
-        <span className={styles.settingDescription}>
-          {currentLanguageLabel}
-        </span>
+        <span className={styles.settingText}>{t('settings_language')}</span>
+        <span className={styles.settingDescription}>{currentLanguageLabel}</span>
       </label>
       <Select
         value={language}
         onChange={handleLanguageChange}
         options={languageOptions}
-        ariaLabel={t('settings.selectLanguage')}
+        ariaLabel={t('settings_selectLanguage')}
         onOpenChange={handleSelectOpenChange}
       />
     </div>

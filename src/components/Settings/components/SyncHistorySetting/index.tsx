@@ -19,16 +19,16 @@ const SyncHistorySetting: React.FC = () => {
     <>
       <div className={styles.settingItem}>
         <label className={styles.settingLabel}>
-          <span className={styles.settingText}>{t('popup.syncTitle')}</span>
+          <span className={styles.settingText}>{t('popup_syncTitle')}</span>
           <span className={styles.settingDescription}>
-            {t('popup.syncDescription')}
+            {t('popup_syncDescription')}
           </span>
         </label>
         <Button
           variant="primary"
           onClick={() => setShowSyncHistory(true)}
-          aria-label={t('popup.showHistory')}>
-          {t('popup.showHistory')}
+          aria-label={t('popup_showHistory')}>
+          {t('popup_showHistory')}
         </Button>
       </div>
       <SyncHistoryModal isOpen={showSyncHistory} onClose={() => setShowSyncHistory(false)} />

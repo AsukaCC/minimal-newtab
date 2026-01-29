@@ -20,17 +20,17 @@ export const ConfigInfo: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.infoItem}>
-        <span className={styles.label}>{t('configInfo.currentTheme')}</span>
-        <span className={styles.value}>{isDarkMode ? t('configInfo.darkTheme') : t('configInfo.lightTheme')}</span>
+        <span className={styles.label}>{t('configInfo_currentTheme')}</span>
+        <span className={styles.value}>{isDarkMode ? t('configInfo_darkTheme') : t('configInfo_lightTheme')}</span>
       </div>
       <div className={styles.infoItem}>
-        <span className={styles.label}>{t('configInfo.lastModified')}</span>
+        <span className={styles.label}>{t('configInfo_lastModified')}</span>
         <span className={styles.value} title={formattedDate}>
           {relativeTime}
         </span>
       </div>
       <div className={styles.infoItem}>
-        <span className={styles.label}>{t('configInfo.modifiedTime')}</span>
+        <span className={styles.label}>{t('configInfo_modifiedTime')}</span>
         <span className={styles.value}>{formattedDate}</span>
       </div>
     </div>
