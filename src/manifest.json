@@ -3,7 +3,7 @@
   "name": "__MSG_extensionName__",
   "version": "1.0.6",
   "description": "__MSG_extensionDescription__",
-  "default_locale": "zh-CN",
+  "default_locale": "zh_CN",
   "action": {
     "default_popup": "popup.html",
     "default_title": "__MSG_extensionName__"
