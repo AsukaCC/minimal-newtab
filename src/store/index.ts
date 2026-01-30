@@ -11,12 +11,12 @@ import { configReducer } from './config';
 import { userInfoReducer } from './userInfo';
 
 /**
- * UserInfo 持久化配置 - 只持久化 userEmail / userAvatar
+ * UserInfo 持久化配置 - 只持久化 userEmail / userName / userAvatar
  */
 const userInfoPersistConfig = {
   key: 'userInfo',
   storage,
-  whitelist: ['userEmail', 'userAvatar'], // 只持久化 userEmail / userAvatar
+  whitelist: ['userEmail', 'userName', 'userAvatar'], // 只持久化 userEmail / userName / userAvatar
 };
 
 /**
@@ -79,6 +79,7 @@ export {
   setChecking,
   setLoggedIn,
   setUserEmail,
+  setUserName,
   setUserAvatar,
   resetUserInfo,
   setLoadingHistories,

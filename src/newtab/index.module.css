@@ -17,14 +17,13 @@
 
 .tools {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 1.5rem;
+  right: 0.5rem;
   z-index: 500;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 12px;
   filter: drop-shadow(0 2px 4px var(--shadow-md));
   transition: filter 0.3s ease;
 }

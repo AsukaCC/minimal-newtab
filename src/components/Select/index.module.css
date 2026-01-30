@@ -17,9 +17,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  background: var(--glass-bg);
+  background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
@@ -34,8 +34,8 @@
 }
 
 .select:hover:not(.disabled) {
-  border-color: var(--color-primary);
-  background-color: var(--glass-bg-strong);
+  border-color: var(--border-color-dark);
+  background-color: var(--bg-secondary);
   transform: translateY(-1px);
   box-shadow: var(--glass-shadow);
 }
@@ -80,8 +80,8 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
   z-index: 9999;
@@ -89,8 +89,6 @@
   animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 300px;
   overflow-y: auto;
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 @keyframes slideDown {
@@ -112,7 +110,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border-color-light);
 }
 
 .option:last-child {
@@ -120,12 +118,12 @@
 }
 
 .option:hover {
-  background-color: var(--glass-bg);
+  background-color: var(--bg-secondary);
   color: var(--color-primary);
 }
 
 .option.selected {
-  background-color: var(--glass-bg);
+  background-color: var(--bg-secondary);
   color: var(--color-primary);
   font-weight: 600;
   position: relative;
@@ -150,9 +148,21 @@
 
 .disabled .select:hover {
   border-color: var(--border-color);
-  background-color: var(--glass-bg);
+  background-color: var(--bg-primary);
   transform: none;
   box-shadow: none;
+}
+
+[data-theme='dark'] .select {
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .dropdown {
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .option {
+  border-bottom-color: var(--border-color-light);
 }
 
 /* 手机端样式 */

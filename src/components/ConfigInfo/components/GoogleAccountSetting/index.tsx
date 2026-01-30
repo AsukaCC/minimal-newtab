@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserAvatar } from '../../../../store';
+import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserName, setUserAvatar } from '../../../../store';
 import Button from '../../../Button';
 import { useI18n } from '../../../../hooks/useI18n';
 import { syncConfig, isLoggedIn as checkIsLoggedIn, logout as logoutService, loadHistoryFromDriveWithToken, getAccessToken, getUserInfo } from '../../../../services/syncService';
@@ -26,6 +26,9 @@ const GoogleAccountSetting: React.FC = () => {
           const userInfo = await getUserInfo();
           if (userInfo?.email) {
             dispatch(setUserEmail(userInfo.email));
+          }
+          if (userInfo?.name) {
+            dispatch(setUserName(userInfo.name));
           }
           if (userInfo?.avatarUrl) {
             dispatch(setUserAvatar(userInfo.avatarUrl));
@@ -64,6 +67,9 @@ const GoogleAccountSetting: React.FC = () => {
             if (userInfo?.email) {
               dispatch(setUserEmail(userInfo.email));
             }
+            if (userInfo?.name) {
+              dispatch(setUserName(userInfo.name));
+            }
             if (userInfo?.avatarUrl) {
               dispatch(setUserAvatar(userInfo.avatarUrl));
             }
@@ -80,6 +86,7 @@ const GoogleAccountSetting: React.FC = () => {
         // 登出时清空历史记录和用户信息
         dispatch(setHistories([]));
         dispatch(setUserEmail(null));
+        dispatch(setUserName(null));
         dispatch(setUserAvatar(null));
       }
 

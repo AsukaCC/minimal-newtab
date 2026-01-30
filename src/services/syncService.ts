@@ -39,7 +39,7 @@ const DRIVE_HISTORY_FILE_ID_KEY = 'minimal-newtab-drive-history-file-id';
 const DRIVE_CONFIG_FILE_NAME = 'minimal-newtab-config.json';
 const DRIVE_HISTORY_FILE_NAME = 'minimal-newtab-history.json';
 
-const MAX_HISTORY_COUNT = 4; // 最多保存4条历史记录
+const MAX_HISTORY_COUNT = 10; // 最多保存4条历史记录
 
 // ==================== Google OAuth2 认证 ====================
 
@@ -377,17 +377,17 @@ export async function isLoggedIn(): Promise<boolean> {
 }
 
 /**
- * 获取用户信息（邮箱）
- * 返回登录用户的邮箱，如果未登录或获取失败则返回 null
+ * 获取用户信息（邮箱、用户名、头像）
+ * 返回登录用户的信息，如果未登录或获取失败则返回 null
  */
-export async function getUserInfo(): Promise<{ email: string; avatarUrl?: string | null } | null> {
+export async function getUserInfo(): Promise<{ email: string; name?: string | null; avatarUrl?: string | null } | null> {
   try {
     const token = await getAccessToken();
     if (!token) {
       return null;
     }
 
-    // 调用 Google OAuth2 userinfo API 获取用户信息（包含头像）
+    // 调用 Google OAuth2 userinfo API 获取用户信息（包含头像和用户名）
     const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       method: 'GET',
       headers: {
@@ -409,6 +409,7 @@ export async function getUserInfo(): Promise<{ email: string; avatarUrl?: string
 
     return {
       email: userInfo.email,
+      name: userInfo.name || null,
       avatarUrl: userInfo.picture || null,
     };
   } catch (error: any) {
@@ -972,16 +973,18 @@ export async function uploadConfig(): Promise<boolean> {
 
     // 每次同步时都创建新的配置ID
     const newConfigId = generateConfigId();
+    const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
     const configToSync = {
       ...localConfig,
       settings: {
         ...localConfig.settings,
         configId: newConfigId,
+        updatedAt: currentTimeString,
       },
     };
 
     // 更新本地配置的 configId
-    store.dispatch(loadConfig({ configId: newConfigId }));
+    store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
     // 等待配置更新完成
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1181,16 +1184,18 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
 
       // 创建新的配置ID
       const newConfigId = generateConfigId();
+      const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
       const configToSync = {
         ...localConfig,
         settings: {
           ...localConfig.settings,
           configId: newConfigId,
+          updatedAt: currentTimeString,
         },
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1271,16 +1276,18 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       console.log('[syncService] 本地配置更新，上传到云端');
 
       const newConfigId = generateConfigId();
+      const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
       const configToSync = {
         ...localConfig,
         settings: {
           ...localConfig.settings,
           configId: newConfigId,
+          updatedAt: currentTimeString,
         },
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1335,16 +1342,18 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       console.log('[syncService] 时间相同但内容不同，使用本地配置');
 
       const newConfigId = generateConfigId();
+      const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
       const configToSync = {
         ...localConfig,
         settings: {
           ...localConfig.settings,
           configId: newConfigId,
+          updatedAt: currentTimeString,
         },
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1466,9 +1475,10 @@ export async function autoSyncConfig(): Promise<boolean> {
 
       // 创建新的配置ID
       const newConfigId = generateConfigId();
+      const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1506,7 +1516,8 @@ export async function autoSyncConfig(): Promise<boolean> {
       console.log('[syncService] 历史记录第一条没有 configId，视为无效配置，重新创建');
       // 创建新的配置ID
       const newConfigId = generateConfigId();
-      store.dispatch(loadConfig({ configId: newConfigId }));
+      const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       const updatedConfig = getLocalConfig();
       if (updatedConfig) {
@@ -1678,9 +1689,10 @@ export async function autoSyncConfig(): Promise<boolean> {
         console.log('[syncService] 本地配置更新，用本地配置覆盖云端配置');
 
         const newConfigId = generateConfigId();
+        const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
         // 更新本地配置的 configId
-        store.dispatch(loadConfig({ configId: newConfigId }));
+        store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
 
         // 等待配置更新完成
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1713,6 +1725,92 @@ export async function autoSyncConfig(): Promise<boolean> {
   } finally {
     // 释放状态锁
     isAutoSyncing = false;
+  }
+}
+
+/**
+ * 手动同步配置（用户点击同步按钮）
+ * 如果当前配置与云端最新记录一致，则仅更新时间，不创建新配置
+ * 否则创建新配置并上传
+ */
+export async function manualSyncConfig(): Promise<boolean> {
+  try {
+    if (!(await isLoggedIn())) {
+      return false;
+    }
+
+    const token = await getAccessToken();
+    if (!token) {
+      throw new Error('未获取到访问令牌');
+    }
+
+    const localConfig = getLocalConfig();
+    if (!localConfig) {
+      throw new Error('无法获取本地配置');
+    }
+
+    await historyBatchManager.begin(token);
+    const histories = historyBatchManager.getHistories();
+    const firstHistory = histories.length > 0 ? histories[0] : null;
+    const localConfigId = localConfig.settings.configId;
+    const firstConfigId = firstHistory?.settings?.configId;
+
+    if (firstHistory && localConfigId && firstConfigId && localConfigId === firstConfigId) {
+      const differences = detectConfigDifferences(localConfig.settings, firstHistory.settings);
+      if (differences.length === 0) {
+        const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
+        store.dispatch(loadConfig({ updatedAt: currentTimeString }));
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const updatedConfig = getLocalConfig();
+        if (updatedConfig) {
+          historyBatchManager.update(firstHistory.id, {
+            updatedAt: updatedConfig.updatedAt,
+            settings: updatedConfig.settings,
+            type: 'upload',
+          });
+          await historyBatchManager.commit();
+
+          const syncConfig: SyncConfigStorage = {
+            updatedAt: dayjs().valueOf(),
+            settings: updatedConfig.settings,
+          };
+
+          const existingFileId = await getOrCreateFileIdWithToken(
+            DRIVE_CONFIG_FILE_NAME,
+            DRIVE_CONFIG_FILE_ID_KEY,
+            token
+          );
+          const fileId = await uploadFileToDriveWithToken(
+            DRIVE_CONFIG_FILE_NAME,
+            JSON.stringify(syncConfig),
+            existingFileId || undefined,
+            token
+          );
+          await saveFileId(fileId, DRIVE_CONFIG_FILE_ID_KEY);
+        } else {
+          historyBatchManager.reset();
+        }
+
+        return true;
+      }
+    }
+
+    historyBatchManager.reset();
+    return uploadConfig();
+  } catch (error: any) {
+    if (error.message && error.message.includes('用户取消了登录')) {
+      throw error;
+    }
+    if (error.requiresReauth || error.message?.includes('权限不足')) {
+      throw error;
+    }
+    console.error('[syncService] 手动同步配置失败:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+    throw error;
   }
 }
 

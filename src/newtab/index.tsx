@@ -9,20 +9,20 @@ import ThemeButton from '../components/ThemeButton';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setChecking, setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserAvatar } from '../store';
+import { setChecking, setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserName, setUserAvatar } from '../store';
 import { isLoggedIn as checkIsLoggedIn, loadHistoryFromDriveWithToken, getUserInfo, startAutoSync, stopAutoSync } from '../services/syncService';
 import { getAccessToken } from '../services/syncService';
 import styles from './index.module.css';
 import Search from '../components/Search';
 import Loading from '../components/Loading';
-import SettingsPage, { SettingsButton } from '../components/Settings';
+import ConfigInfo, { ConfigInfoButton } from '../components/ConfigInfo';
 
 const NewTabApp: React.FC = () => {
   const { t } = useI18n();
   const { isDarkMode, toggleTheme } = useTheme();
   const themeColor = useAppSelector((state) => state.config.themeColor);
   const dispatch = useAppDispatch();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConfigInfoOpen, setIsConfigInfoOpen] = useState(false);
 
   useEffect(() => {
     document.title = t('extensionName');
@@ -54,6 +54,9 @@ const NewTabApp: React.FC = () => {
               if (userInfo?.email) {
                 dispatch(setUserEmail(userInfo.email));
               }
+              if (userInfo?.name) {
+                dispatch(setUserName(userInfo.name));
+              }
               if (userInfo?.avatarUrl) {
                 dispatch(setUserAvatar(userInfo.avatarUrl));
               }
@@ -69,6 +72,7 @@ const NewTabApp: React.FC = () => {
         } else {
           // 登出时清空用户信息
           dispatch(setUserEmail(null));
+          dispatch(setUserName(null));
           dispatch(setUserAvatar(null));
         }
       } catch (error) {
@@ -104,24 +108,24 @@ const NewTabApp: React.FC = () => {
     }
   }, [themeColor]);
 
-  const handleOpenSettings = () => {
-    setIsSettingsOpen(true);
+  const handleOpenConfigInfo = () => {
+    setIsConfigInfoOpen(true);
   };
 
-  const handleCloseSettings = () => {
-    setIsSettingsOpen(false);
+  const handleCloseConfigInfo = () => {
+    setIsConfigInfoOpen(false);
   };
 
   return (
     <div className={`${styles.newtabPage} ${styles.container}`}>
       <div className={styles.tools}>
         <ThemeButton isDarkMode={isDarkMode} onChange={toggleTheme} />
-        <SettingsButton onClick={handleOpenSettings} />
+        <ConfigInfoButton onClick={handleOpenConfigInfo} />
       </div>
       <div className={styles.mainContent}>
         <Search />
       </div>
-      <SettingsPage isOpen={isSettingsOpen} onClose={handleCloseSettings} />
+      <ConfigInfo isOpen={isConfigInfoOpen} onClose={handleCloseConfigInfo} />
     </div>
   );
 };

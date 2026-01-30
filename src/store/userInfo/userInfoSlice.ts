@@ -16,6 +16,7 @@ export interface UserInfoState {
   
   // 用户账户信息
   userEmail: string | null; // 登录用户的邮箱
+  userName: string | null; // 登录用户的用户名
   userAvatar: string | null; // 登录用户的头像 URL
   
   // 历史记录
@@ -31,6 +32,7 @@ const initialState: UserInfoState = {
   isLoggedIn: null,
   isChecking: false,
   userEmail: null,
+  userName: null,
   userAvatar: null,
   histories: [],
   isLoadingHistories: false,
@@ -63,6 +65,7 @@ const userInfoSlice = createSlice({
         state.histories = [];
         state.historiesLastUpdated = null;
         state.userEmail = null;
+        state.userName = null;
         state.userAvatar = null;
       }
     },
@@ -82,12 +85,20 @@ const userInfoSlice = createSlice({
     },
 
     /**
+     * 设置用户名
+     */
+    setUserName: (state, action: PayloadAction<string | null>) => {
+      state.userName = action.payload;
+    },
+
+    /**
      * 重置用户信息状态
      */
     resetUserInfo: (state) => {
       state.isLoggedIn = null;
       state.isChecking = false;
       state.userEmail = null;
+      state.userName = null;
       state.userAvatar = null;
       state.histories = [];
       state.isLoadingHistories = false;
@@ -155,6 +166,7 @@ export const {
   setChecking,
   setLoggedIn,
   setUserEmail,
+  setUserName,
   setUserAvatar,
   resetUserInfo,
   setLoadingHistories,

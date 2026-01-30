@@ -1,56 +1,915 @@
-/* PC/平板端样式（默认） */
-.container {
-  padding: var(--spacing-md);
-  background-color: var(--glass-bg);
-  border-radius: var(--radius-md);
+/* 设置按钮样式 */
+.settingsButton {
+  position: relative;
+  width: 3rem ;
+  height: 3rem;
+  border: none;
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
+  z-index: 500;
+  padding: 0.5rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.settingsButton:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  background: var(--glass-bg-strong);
+}
+
+.settingsButton:active {
+  transform: translateY(0) scale(1);
+}
+
+.settingsButton .settingsIcon {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* 遮罩层 - 参考公共样式 common-overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 550;
+  animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 优化动画性能 */
+  will-change: opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* fadeIn 动画已定义在公共样式 common.css 中 */
+
+/* 设置面板 */
+.settingsPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.72);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  /* 使用 transform 替代 right，启用 GPU 加速 */
+  transform: translateX(100%) translateZ(0);
+  -webkit-transform: translateX(100%) translateZ(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.settingsPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.settingsPanel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.settingsPanel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.settingsPanel.open {
+  transform: translateX(0) translateZ(0);
+  -webkit-transform: translateX(0) translateZ(0);
+}
+
+.slidingWrapper {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 启用 GPU 加速 */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+.slideActive {
+  transform: translateX(-50%) translateZ(0);
+  -webkit-transform: translateX(-50%) translateZ(0);
+}
+
+.pageContent {
+  width: 50%;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
+.settingsPanel.selectOpen {
+  /* 只放开纵向溢出，避免横向把一级页面露出来 */
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+/* 设置容器 */
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+/* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
+.settingsContainer.selectOpen {
+  overflow-y: visible;
+}
+
+/* 自定义滚动条样式 */
+.settingsContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settingsContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settingsContainer::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.settingsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme='dark'] .settingsContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] .settingsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 设置面板头部 - iOS 26 Liquid Glass 风格，与主题变量统一 */
+.settingsHeader {
+  display: flex;
+  height: 5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--glass-bg);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+  border-bottom: 1px solid var(--border-color-light);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.infoItem {
+.headerLeft {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm) 0;
-  border-bottom: 1px solid var(--glass-border);
+  gap: var(--spacing-sm);
 }
 
-.infoItem:last-child {
-  border-bottom: none;
+.accountWrapper {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
 }
 
-.label {
-  font-weight: 500;
+/* 账户区 - 玻璃胶囊，Liquid Glass */
+.accountInfo {
+  height: 100%;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: visible;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.accountInfo:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* 未登录：更轻的玻璃条 */
+.accountInfoGuest {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.accountInfoGuest:hover {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 未登录时的简约「使用 Google 登录」触发器 */
+.accountSignIn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -0.02em;
 }
 
-.value {
+.accountSignIn:hover:not(:disabled) {
   color: var(--text-primary);
+}
+
+.accountSignIn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.accountSignInIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.accountSignInText {
+  letter-spacing: -0.02em;
+}
+
+.accountSignInSpinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid var(--border-color-light);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* 头像 - 玻璃圆，主题色渐变占位 */
+.accountAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--border-color-light);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.googleIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.googleIconInButton {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.accountName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+}
+
+.logoutButtonWrapper {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  animation: slideInRight 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.chevronIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settingsTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.subPageTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+/* 关闭按钮 - Liquid Glass 圆钮 */
+.closeButton {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color-light);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+  padding: 0;
+  outline: none;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeButton:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  transform: scale(1.04);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.closeButton:active {
+  transform: scale(0.96);
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+/* 简约返回按钮 */
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: -8px;
+  border-radius: 8px;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.backButton:active {
+  transform: scale(0.95);
+}
+
+.backIcon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* 设置项列表区域 */
+.settingsSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 20px;
+  background: transparent;
+}
+
+/* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
+.settingsSection.selectOpen {
+  overflow-y: visible;
+  overflow-x: visible;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.6);
+  margin: 16px 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sectionDescription {
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.55);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 设置项样式 - 现代化卡片设计 */
+.settingItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.settingItem:hover {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.settingItem:active {
+  transform: translateY(0);
+}
+
+.settingLabel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.settingText {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.settingDescription {
   font-size: 14px;
-  font-family: 'Courier New', monospace;
+  color: rgba(15, 23, 42, 0.6);
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* 主题色选择器 */
+.themeColorPicker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.colorInput {
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput::-moz-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.colorInput:hover {
+  border-color: rgba(15, 23, 42, 0.35);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.colorInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.colorInput:active {
+  transform: scale(1);
+}
+
+[data-theme='dark'] .colorInput {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.colorPreview {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .settingsPanel {
+  background: rgba(18, 18, 22, 0.72);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .settingsPanel::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+}
+
+[data-theme='dark'] .settingsPanel::after {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* 头部 Liquid Glass 暗色 */
+[data-theme='dark'] .settingsHeader {
+  background: var(--glass-bg);
+  border-bottom-color: var(--border-color-light);
+}
+
+[data-theme='dark'] .accountInfo {
+  background: var(--glass-bg);
+  border-color: var(--border-color-light);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .accountInfo:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .accountInfoGuest {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='dark'] .accountInfoGuest:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .accountSignIn {
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .accountSignIn:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .accountSignInIcon {
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .accountSignInSpinner {
+  border-color: var(--border-color-light);
+  border-top-color: var(--color-primary);
+}
+
+[data-theme='dark'] .accountAvatar {
+  background: var(--glass-bg-strong);
+  border-color: var(--border-color-light);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .closeButton {
+  background: var(--glass-bg);
+  border-color: var(--border-color-light);
+  color: var(--text-secondary);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .closeButton:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .backButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .sectionTitle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'] .sectionDescription {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme='dark'] .settingItem {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .settingItem:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+[data-theme='dark'] .settingDescription {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'] .colorPreview {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 同步历史按钮 - 已迁移到 Button 组件，此处保留用于向后兼容 */
+/* 建议使用 Button 组件 variant="primary" */
+.syncHistoryButton {
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.syncHistoryButton:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.syncHistoryButton:active {
+  transform: translateY(0) scale(1);
+}
+
+.syncHistoryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner - 参考公共样式 common-spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-primary, #667eea);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[data-theme='dark'] .spinner {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--color-primary, #667eea);
 }
 
 /* 手机端样式 */
 @media screen and (max-width: 768px) {
-  .container {
-    padding: var(--spacing-sm);
+  .settingsPanel {
+    width: 100%;
+    transform: translateX(100%) translateZ(0);
+    -webkit-transform: translateX(100%) translateZ(0);
   }
 
-  .infoItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-sm) 0;
+  .settingsPanel.open {
+    transform: translateX(0) translateZ(0);
+    -webkit-transform: translateX(0) translateZ(0);
   }
 
-  .label {
+  .settingsButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .settingsButton .settingsIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+
+  .settingsTitle {
+    font-size: 24px;
+  }
+
+  .subPageTitle {
+    font-size: 20px;
+  }
+
+  .settingsContainer {
+    gap: 0;
+  }
+
+  .settingsSection {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .settingItem {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .settingText {
+    font-size: 15px;
+  }
+
+  .settingDescription {
     font-size: 13px;
   }
 
-  .value {
+  .themeColorPicker {
+    gap: 8px;
+  }
+
+  .colorInput {
+    width: 40px;
+    height: 40px;
+  }
+
+  .colorPreview {
+    width: 32px;
+    height: 32px;
+  }
+
+  .closeButton {
+    width: 32px;
+    height: 32px;
+  }
+
+  .closeIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .backButton {
+    padding: 6px;
+  }
+
+  .backIcon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* 超小屏幕优化 */
+@media screen and (max-width: 360px) {
+  .settingsSection {
+    padding: 12px;
+  }
+
+  .settingItem {
+    padding: 14px;
+  }
+
+  .settingText {
+    font-size: 14px;
+  }
+
+  .settingDescription {
     font-size: 12px;
-    word-break: break-all;
   }
 }

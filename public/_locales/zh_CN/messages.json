@@ -26,10 +26,10 @@
     "message": "系统主题色"
   },
   "settings_themeAndLanguage": {
-    "message": "拓展设置"
+    "message": "设置"
   },
   "settings_themeAndLanguageDescription": {
-    "message": "主题色与语言设置"
+    "message": "插件选项"
   },
   "settings_openThemeAndLanguage": {
     "message": "进入"
@@ -107,10 +107,10 @@
     "message": "欢迎使用"
   },
   "popup_syncTitle": {
-    "message": "配置同步"
+    "message": "同步"
   },
   "popup_syncDescription": {
-    "message": "云端配置"
+    "message": "配置管理"
   },
   "popup_loginSubtitle": {
     "message": "使用 Google 账号登录以同步您的数据"
@@ -141,6 +141,9 @@
   },
   "popup_syncNow": {
     "message": "立即同步"
+  },
+  "popup_sync": {
+    "message": "同步"
   },
   "popup_syncFailed": {
     "message": "同步失败，请重试"
@@ -264,7 +267,7 @@
     "message": "确定要清空所有同步记录吗？此操作不可恢复。"
   },
   "popup_refresh": {
-    "message": "刷新"
+    "message": "拉取"
   },
   "popup_refreshing": {
     "message": "刷新中..."

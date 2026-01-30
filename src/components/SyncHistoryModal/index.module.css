@@ -86,40 +86,24 @@
   stroke: currentColor;
 }
 
-/* 弹窗内容 - 参考公共样式 common-modal-content */
+/* 弹窗内容 - 不滚动，仅 historyList 内部滚动 */
 .modalContent {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 0;
 }
 
 .subPageContent {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-
-.modalContent::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modalContent::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.modalContent::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-.modalContent::-webkit-scrollbar-thumb:hover {
-  background: var(--border-color-dark);
 }
 
 .syncSection {
@@ -136,11 +120,19 @@
 
 .allActionsRow {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+}
+
+.actionRow {
+  display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   width: 100%;
-  padding: 0;
 }
 
 /* 移除横向滚动条样式，改用 flex-wrap */
@@ -266,6 +258,8 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 0;
+  flex: 1;
+  min-height: 0;
 }
 
 .historyHeader {
@@ -332,7 +326,8 @@
 }
 
 .historyList {
-  max-height: 420px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -623,6 +618,10 @@
     gap: 8px;
   }
 
+  .actionRow {
+    gap: 8px;
+  }
+
   .syncButton,
   .exportButton,
   .importButton,
@@ -632,7 +631,6 @@
   }
 
   .historyList {
-    max-height: 300px;
     gap: 8px;
   }
 

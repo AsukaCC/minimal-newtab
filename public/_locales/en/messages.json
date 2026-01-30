@@ -26,10 +26,10 @@
     "message": "System theme color"
   },
   "settings_themeAndLanguage": {
-    "message": "Extension Settings"
+    "message": "Settings"
   },
   "settings_themeAndLanguageDescription": {
-    "message": "Theme color and language settings"
+    "message": "Extension options"
   },
   "settings_openThemeAndLanguage": {
     "message": "Open"
@@ -107,10 +107,10 @@
     "message": "Welcome"
   },
   "popup_syncTitle": {
-    "message": "Config Sync"
+    "message": "Sync"
   },
   "popup_syncDescription": {
-    "message": "Cloud configuration"
+    "message": "Config"
   },
   "popup_loginSubtitle": {
     "message": "Sign in with your Google account to sync your data"
@@ -141,6 +141,9 @@
   },
   "popup_syncNow": {
     "message": "Sync Now"
+  },
+  "popup_sync": {
+    "message": "Sync"
   },
   "popup_syncFailed": {
     "message": "Sync failed, please try again"
@@ -264,7 +267,7 @@
     "message": "Are you sure you want to clear all sync records? This action cannot be undone."
   },
   "popup_refresh": {
-    "message": "Refresh"
+    "message": "Fetch"
   },
   "popup_refreshing": {
     "message": "Refreshing..."
