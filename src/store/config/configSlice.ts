@@ -4,6 +4,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import dayjs from 'dayjs';
+import type { NavItem } from '../../components/BottomNavBar';
 
 /**
  * 配置状态接口
@@ -16,6 +17,7 @@ export interface ConfigState {
   isDirectLink: boolean; // true: 当前标签页打开；false: 新标签页打开
   themeColor: string; // 主题色，例如 '#667eea'
   language: string; // 语言设置，'zh-CN' 或 'en-US'
+  navItems?: NavItem[]; // 导航栏项目列表
 }
 
 /**
@@ -26,15 +28,20 @@ export interface ConfigState {
 function getSystemLanguage(): string {
   // 优先使用Chrome扩展API获取浏览器语言
   let browserLang: string;
-  
-  if (typeof chrome !== 'undefined' && chrome.i18n && chrome.i18n.getUILanguage) {
+
+  if (
+    typeof chrome !== 'undefined' &&
+    chrome.i18n &&
+    chrome.i18n.getUILanguage
+  ) {
     // Chrome扩展环境，使用Chrome浏览器语言
     browserLang = chrome.i18n.getUILanguage();
   } else {
     // 非扩展环境或API不可用，使用系统语言
-    browserLang = navigator.language || (navigator as any).userLanguage || 'zh-CN';
+    browserLang =
+      navigator.language || (navigator as any).userLanguage || 'zh-CN';
   }
-  
+
   // 如果浏览器语言是中文相关，返回 zh-CN，否则返回 en-US
   if (browserLang.startsWith('zh')) {
     return 'zh-CN';
@@ -46,8 +53,30 @@ function getSystemLanguage(): string {
  * 生成唯一的配置ID
  */
 export function generateConfigId(): string {
-  return `config-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 15)}`;
+  return `config-${dayjs().valueOf()}-${Math.random()
+    .toString(36)
+    .substring(2, 15)}`;
 }
+
+/**
+ * 默认导航栏项目
+ */
+const defaultNavItems: NavItem[] = [
+  {
+    id: 'youtube',
+    label: 'YouTube',
+    url: 'https://www.youtube.com',
+    icon: 'youtube',
+  },
+  {
+    id: 'chatgpt',
+    label: 'ChatGPT',
+    url: 'https://chat.openai.com',
+    icon: 'chatgpt',
+  },
+  { id: 'github', label: 'GitHub', url: 'https://github.com', icon: 'github' },
+  { id: 'x', label: 'X', url: 'https://x.com', icon: 'x' },
+];
 
 /**
  * 初始状态
@@ -59,6 +88,7 @@ const initialState: ConfigState = {
   isDirectLink: false,
   themeColor: '#667eea', // 默认主题色（蓝紫色）
   language: getSystemLanguage(), // 默认使用系统语言
+  navItems: defaultNavItems, // 默认导航栏项目
 };
 
 /**
@@ -109,6 +139,14 @@ const configSlice = createSlice({
     },
 
     /**
+     * 设置导航栏项目
+     */
+    setNavItems: (state, action: PayloadAction<NavItem[]>) => {
+      state.navItems = action.payload;
+      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    },
+
+    /**
      * 从存储中加载配置（不更新修改日期）
      * 注意：传入的配置应该是已经规范化的数据
      * 注意：不会自动创建 configId，configId 只在同步时创建
@@ -130,6 +168,7 @@ const configSlice = createSlice({
         ...initialState,
         updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
         language: defaultLanguage,
+        navItems: defaultNavItems,
         // 清除 configId
         configId: undefined,
       };
@@ -144,6 +183,7 @@ export const {
   setIsDirectLink,
   setThemeColor,
   setLanguage,
+  setNavItems,
   loadConfig,
   resetConfig,
 } = configSlice.actions;

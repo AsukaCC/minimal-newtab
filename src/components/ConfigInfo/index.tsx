@@ -6,8 +6,9 @@ import SyncHistorySetting from './components/SyncHistorySetting';
 import SyncHistoryModal from '../SyncHistoryModal';
 import ThemeColorSetting from './components/ThemeColorSetting';
 import LanguageSetting from './components/LanguageSetting';
-import ThemeAndLanguageSetting from './components/ThemeAndLanguageSetting';
 import LinkOpenModeSetting from './components/LinkOpenModeSetting';
+import NavBarSetting from './components/NavBarSetting';
+import NavBarConfigPage from './components/NavBarConfigPage';
 import ConfigInfoHeader from './components/ConfigInfoHeader';
 import ConfigInfoSubHeader from './components/ConfigInfoSubHeader';
 import { logout as logoutService, isLoggedIn as checkIsLoggedIn, getAccessToken, loadHistoryFromDriveWithToken, getUserInfo, syncConfig } from '../../services/syncService';
@@ -236,7 +237,7 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     });
   }, [isLoggingOut, checkGoogleLoginStatus, t, dispatch]);
 
-  const handleBackRef = useRef<() => void>(() => {});
+  const handleBackRef = useRef<() => void>(() => { });
   const handleBack = () => {
     if (isSlidingBack) return;
     setIsSlidingBack(true);
@@ -299,7 +300,10 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
               {/* 设置项列表区域 */}
               <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
                 <SyncHistorySetting onOpenHistory={() => setActiveSubPage('syncHistory')} />
-                <ThemeAndLanguageSetting onOpen={() => setActiveSubPage('themeLanguage')} />
+                <ThemeColorSetting />
+                <LanguageSetting onSelectOpenChange={setIsSelectOpen} />
+                <LinkOpenModeSetting />
+                <NavBarSetting onOpenConfig={() => setActiveSubPage('navBarConfig')} />
               </div>
             </div>
           </div>
@@ -308,23 +312,15 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
           <div className={styles.pageContent}>
             <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
               <div className={styles.settingsHeader}>
-                <ConfigInfoSubHeader
-                  activeSubPage={activeSubPage}
-                  onBack={handleBack}
-                  t={t}
-                />
+                <ConfigInfoSubHeader onBack={handleBack} t={t} />
               </div>
 
               <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
                 {activeSubPage === 'syncHistory' && (
                   <SyncHistoryModal isOpen={true} onClose={handleBack} isSubPage={true} />
                 )}
-                {activeSubPage === 'themeLanguage' && (
-                  <>
-                    <ThemeColorSetting />
-                    <LanguageSetting onSelectOpenChange={setIsSelectOpen} />
-                    <LinkOpenModeSetting />
-                  </>
+                {activeSubPage === 'navBarConfig' && (
+                  <NavBarConfigPage onClose={handleBack} />
                 )}
               </div>
             </div>

@@ -9,6 +9,7 @@ export {
   setIsDirectLink,
   setThemeColor,
   setLanguage,
+  setNavItems,
   loadConfig,
   resetConfig,
 } from './configSlice';

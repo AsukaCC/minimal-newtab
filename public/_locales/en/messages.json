@@ -58,6 +58,63 @@
   "settings_toggleLinkOpenMode": {
     "message": "Toggle link open mode"
   },
+  "settings_navBarConfig": {
+    "message": "Nav Bar"
+  },
+  "settings_navBarConfigDescription": {
+    "message": "Customize the default list of the bottom nav bar"
+  },
+  "settings_navBarResetConfirm": {
+    "message": "Reset to default list?"
+  },
+  "settings_navBarEmpty": {
+    "message": "No nav items. Click \"Add\" to add new items"
+  },
+  "settings_reset": {
+    "message": "Reset"
+  },
+  "settings_add": {
+    "message": "Add"
+  },
+  "settings_label": {
+    "message": "Label"
+  },
+  "settings_labelPlaceholder": {
+    "message": "Enter label"
+  },
+  "settings_url": {
+    "message": "URL"
+  },
+  "settings_urlPlaceholder": {
+    "message": "https://example.com"
+  },
+  "settings_icon": {
+    "message": "Icon"
+  },
+  "settings_save": {
+    "message": "Save"
+  },
+  "settings_cancel": {
+    "message": "Cancel"
+  },
+  "settings_moveUp": {
+    "message": "Move up"
+  },
+  "settings_moveDown": {
+    "message": "Move down"
+  },
+  "settings_edit": {
+    "message": "Edit"
+  },
+  "settings_delete": {
+    "message": "Delete"
+  },
+  "settings_dragToSort": {
+    "message": "Drag to sort"
+  },
+  "settings_newItemLabel": {
+    "message": "New item"
+  },
   "common_back": {
     "message": "Back"
   },

@@ -16,6 +16,7 @@ import styles from './index.module.css';
 import Search from '../components/Search';
 import Loading from '../components/Loading';
 import ConfigInfo, { ConfigInfoButton } from '../components/ConfigInfo';
+import BottomNavBar from '../components/BottomNavBar';
 
 const NewTabApp: React.FC = () => {
   const { t } = useI18n();
@@ -35,7 +36,7 @@ const NewTabApp: React.FC = () => {
       try {
         const loggedIn = await checkIsLoggedIn();
         dispatch(setLoggedIn(loggedIn));
-        
+
         // 如果登录成功，拉取历史记录到 store 并获取用户信息
         if (loggedIn) {
           try {
@@ -47,7 +48,7 @@ const NewTabApp: React.FC = () => {
             } else {
               dispatch(setHistories([]));
             }
-            
+
             // 获取用户信息
             try {
               const userInfo = await getUserInfo();
@@ -125,6 +126,7 @@ const NewTabApp: React.FC = () => {
       <div className={styles.mainContent}>
         <Search />
       </div>
+      <BottomNavBar />
       <ConfigInfo isOpen={isConfigInfoOpen} onClose={handleCloseConfigInfo} />
     </div>
   );

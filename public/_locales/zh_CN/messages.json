@@ -58,6 +58,63 @@
   "settings_toggleLinkOpenMode": {
     "message": "切换链接打开方式"
   },
+  "settings_navBarConfig": {
+    "message": "导航栏配置"
+  },
+  "settings_navBarConfigDescription": {
+    "message": "自定义底部导航栏的默认列表"
+  },
+  "settings_navBarResetConfirm": {
+    "message": "确定要重置为默认列表吗？"
+  },
+  "settings_navBarEmpty": {
+    "message": "暂无导航项，点击「添加」按钮添加新项目"
+  },
+  "settings_reset": {
+    "message": "重置"
+  },
+  "settings_add": {
+    "message": "添加"
+  },
+  "settings_label": {
+    "message": "标签"
+  },
+  "settings_labelPlaceholder": {
+    "message": "输入标签"
+  },
+  "settings_url": {
+    "message": "URL"
+  },
+  "settings_urlPlaceholder": {
+    "message": "https://example.com"
+  },
+  "settings_icon": {
+    "message": "图标"
+  },
+  "settings_save": {
+    "message": "保存"
+  },
+  "settings_cancel": {
+    "message": "取消"
+  },
+  "settings_moveUp": {
+    "message": "上移"
+  },
+  "settings_moveDown": {
+    "message": "下移"
+  },
+  "settings_edit": {
+    "message": "编辑"
+  },
+  "settings_delete": {
+    "message": "删除"
+  },
+  "settings_dragToSort": {
+    "message": "拖动排序"
+  },
+  "settings_newItemLabel": {
+    "message": "新项目"
+  },
   "common_back": {
     "message": "返回"
   },

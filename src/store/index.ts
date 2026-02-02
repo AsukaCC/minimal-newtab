@@ -68,6 +68,7 @@ export {
   setIsDirectLink,
   setThemeColor,
   setLanguage,
+  setNavItems,
   loadConfig,
   resetConfig,
   generateConfigId,
@@ -92,5 +93,9 @@ export {
 export type { UserInfoState } from './userInfo';
 
 // 向后兼容：导出旧的 auth 相关名称
-export { setChecking as setAuthChecking, setLoggedIn as setAuthLoggedIn, resetUserInfo as resetAuth } from './userInfo';
+export {
+  setChecking as setAuthChecking,
+  setLoggedIn as setAuthLoggedIn,
+  resetUserInfo as resetAuth,
+} from './userInfo';
 export type { UserInfoState as AuthState } from './userInfo';

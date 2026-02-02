@@ -2,11 +2,11 @@ import React from 'react';
 import { useI18n } from '../../../../hooks/useI18n';
 import styles from './index.module.css';
 
-interface ThemeAndLanguageSettingProps {
-  onOpen: () => void;
+interface NavBarSettingProps {
+  onOpenConfig: () => void;
 }
 
-const ThemeAndLanguageSetting: React.FC<ThemeAndLanguageSettingProps> = ({ onOpen }) => {
+const NavBarSetting: React.FC<NavBarSettingProps> = ({ onOpenConfig }) => {
   const { t } = useI18n();
 
   return (
@@ -14,23 +14,23 @@ const ThemeAndLanguageSetting: React.FC<ThemeAndLanguageSettingProps> = ({ onOpe
       className={styles.settingItem}
       role="button"
       tabIndex={0}
-      aria-label={t('settings_openThemeAndLanguage')}
-      onClick={onOpen}
+      aria-label={t('settings_navBarConfig') || '导航栏配置'}
+      onClick={onOpenConfig}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          onOpen();
+          onOpenConfig();
         }
       }}
     >
       <label className={styles.settingLabel}>
-        <span className={styles.settingText}>{t('settings_themeAndLanguage')}</span>
+        <span className={styles.settingText}>{t('settings_navBarConfig') || '导航栏配置'}</span>
         <span className={styles.settingDescription}>
-          {t('settings_themeAndLanguageDescription')}
+          {t('settings_navBarConfigDescription') || '自定义底部导航栏的默认列表'}
         </span>
       </label>
     </div>
   );
 };
 
-export default ThemeAndLanguageSetting;
+export default NavBarSetting;

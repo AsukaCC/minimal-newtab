@@ -2,13 +2,11 @@ import React from 'react';
 import styles from '../../index.module.css';
 
 export interface ConfigInfoSubHeaderProps {
-  activeSubPage: string | null;
   onBack: () => void;
   t: (key: string) => string | undefined;
 }
 
 const ConfigInfoSubHeader: React.FC<ConfigInfoSubHeaderProps> = ({
-  activeSubPage,
   onBack,
   t,
 }) => {
@@ -30,13 +28,6 @@ const ConfigInfoSubHeader: React.FC<ConfigInfoSubHeaderProps> = ({
           />
         </svg>
       </button>
-      <h2 className={styles.subPageTitle}>
-        {activeSubPage === 'syncHistory'
-          ? t('popup_syncTitle')
-          : activeSubPage === 'themeLanguage'
-            ? t('settings_themeAndLanguage')
-            : ''}
-      </h2>
     </div>
   );
 };
