@@ -18,6 +18,7 @@ export interface ConfigState {
   themeColor: string; // 主题色，例如 '#667eea'
   language: string; // 语言设置，'zh-CN' 或 'en-US'
   navItems?: NavItem[]; // 导航栏项目列表
+  showNavBar?: boolean; // 是否显示底部导航栏
 }
 
 /**
@@ -89,6 +90,7 @@ const initialState: ConfigState = {
   themeColor: '#667eea', // 默认主题色（蓝紫色）
   language: getSystemLanguage(), // 默认使用系统语言
   navItems: defaultNavItems, // 默认导航栏项目
+  showNavBar: true, // 默认显示底部导航栏
 };
 
 /**
@@ -147,6 +149,14 @@ const configSlice = createSlice({
     },
 
     /**
+     * 控制底部导航栏显示/隐藏
+     */
+    setShowNavBar: (state, action: PayloadAction<boolean>) => {
+      state.showNavBar = action.payload;
+      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    },
+
+    /**
      * 从存储中加载配置（不更新修改日期）
      * 注意：传入的配置应该是已经规范化的数据
      * 注意：不会自动创建 configId，configId 只在同步时创建
@@ -184,6 +194,7 @@ export const {
   setThemeColor,
   setLanguage,
   setNavItems,
+  setShowNavBar,
   loadConfig,
   resetConfig,
 } = configSlice.actions;

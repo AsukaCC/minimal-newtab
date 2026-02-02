@@ -10,6 +10,7 @@ export {
   setThemeColor,
   setLanguage,
   setNavItems,
+  setShowNavBar,
   loadConfig,
   resetConfig,
 } from './configSlice';

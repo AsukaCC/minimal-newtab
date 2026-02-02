@@ -69,6 +69,7 @@ export {
   setThemeColor,
   setLanguage,
   setNavItems,
+  setShowNavBar,
   loadConfig,
   resetConfig,
   generateConfigId,

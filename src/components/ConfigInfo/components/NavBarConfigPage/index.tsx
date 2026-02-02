@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { setNavItems } from '../../../../store';
+import { setNavItems, setShowNavBar } from '../../../../store';
 import { useI18n } from '../../../../hooks/useI18n';
 import type { NavItem } from '../../../BottomNavBar';
 import styles from './index.module.css';
+import Switch from '../../../Switch';
 
 interface NavBarConfigPageProps {
   onClose: () => void;
@@ -46,6 +47,9 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
   const storedNavItems = useAppSelector((state) => state.config.navItems);
+  const showNavBar = useAppSelector(
+    (state) => (typeof state.config.showNavBar === 'boolean' ? state.config.showNavBar : true),
+  );
   const [items, setItems] = useState<NavItem[]>(storedNavItems || defaultNavItems);
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
   const [editingUrlId, setEditingUrlId] = useState<string | null>(null);
@@ -63,6 +67,13 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
   useEffect(() => {
     if (editingUrlId) urlInputRef.current?.focus();
   }, [editingUrlId]);
+
+  const handleToggleVisible = useCallback(
+    (checked: boolean) => {
+      dispatch(setShowNavBar(checked));
+    },
+    [dispatch],
+  );
 
   const handleAdd = useCallback(() => {
     setItems([
@@ -163,6 +174,22 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
             + {t('settings_add') || '添加'}
           </button>
         </div>
+      </div>
+
+      <div className={styles.visibleRow}>
+        <div className={styles.visibleText}>
+          <div className={styles.visibleTitle}>
+            {t('settings_navBarVisible') || '显示底部导航栏'}
+          </div>
+          <div className={styles.visibleDesc}>
+            {t('settings_navBarVisibleDesc') || '在新标签页底部显示/隐藏导航栏'}
+          </div>
+        </div>
+        <Switch
+          checked={showNavBar}
+          onChange={handleToggleVisible}
+          ariaLabel={t('settings_navBarVisible') || '显示底部导航栏'}
+        />
       </div>
 
       <div className={styles.list}>

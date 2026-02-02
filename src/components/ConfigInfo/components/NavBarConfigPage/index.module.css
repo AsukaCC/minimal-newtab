@@ -72,6 +72,40 @@
   padding-right: 4px;
 }
 
+.visibleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.visibleText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.visibleTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.visibleDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.9;
+}
+
 .empty {
   text-align: center;
   padding: 40px 20px;
@@ -269,6 +303,7 @@
   .resetButton,
   .addButton,
   .item,
+  .visibleRow,
   .iconSelect,
   .deleteButton,
   .cancelFooterButton,

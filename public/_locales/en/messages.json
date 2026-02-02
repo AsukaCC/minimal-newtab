@@ -115,6 +115,12 @@
   "settings_newItemLabel": {
     "message": "New item"
   },
+  "settings_navBarVisible": {
+    "message": "Show bottom nav bar"
+  },
+  "settings_navBarVisibleDesc": {
+    "message": "Show or hide the bottom navigation bar on the new tab page"
+  },
   "common_back": {
     "message": "Back"
   },

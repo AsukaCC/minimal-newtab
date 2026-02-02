@@ -76,9 +76,16 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         ? isDirectLinkValue
         : isDirectLinkValue === 'true' || isDirectLinkValue === true;
 
-    // 优先使用 props，其次使用 store 中的配置，最后使用默认值
+    // 先取出所有需要的 store 值，保证 hooks 次序稳定
+    const showNavBarValue = useAppSelector((state: RootState) => state.config.showNavBar);
     const storeNavItems = useAppSelector((state: RootState) => state.config.navItems);
     const items = propItems || storeNavItems || defaultItems;
+
+    const showNavBar = typeof showNavBarValue === 'boolean' ? showNavBarValue : true;
+
+    if (!showNavBar) {
+        return null;
+    }
 
     return (
         <nav

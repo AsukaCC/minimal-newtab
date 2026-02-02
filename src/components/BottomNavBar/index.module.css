@@ -32,7 +32,8 @@
   width: 44px;
   height: 44px;
   text-decoration: none;
-  color: var(--nav-icon-color, #fff);
+  /* 默认根据主题文字色来着色图标，更融入整体配色 */
+  color: var(--text-primary);
   transition: transform 0.3s ease, background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
@@ -46,7 +47,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--nav-icon-bg, #4a4a4a);
+  /* 浅色主题下使用轻微的玻璃卡片效果 */
+  background: var(--nav-icon-bg, rgba(0, 0, 0, 0.04));
   transition: background 0.2s ease, box-shadow 0.2s ease;
   z-index: 0;
 }
@@ -56,8 +58,8 @@
 }
 
 .link:hover::before {
-  background: var(--nav-icon-bg-hover, #5a5a5a);
-  box-shadow: 0 4px 12px var(--shadow-md);
+  background: var(--nav-icon-bg-hover, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 4px 12px var(--shadow-md, rgba(15, 23, 42, 0.12));
 }
 
 .link:active {
@@ -109,8 +111,9 @@
   opacity: 1;
 }
 
-/* 暗色主题下图标背景略亮一点 */
+/* 暗色主题下整体提亮背景，保证对比度与层次感 */
 [data-theme='dark'] .link {
-  --nav-icon-bg: #5a5a5a;
-  --nav-icon-bg-hover: #6a6a6a;
+  color: #ffffff;
+  --nav-icon-bg: rgba(255, 255, 255, 0.08);
+  --nav-icon-bg-hover: rgba(255, 255, 255, 0.14);
 }
