@@ -14,6 +14,7 @@ import ConfigInfoSubHeader from './components/ConfigInfoSubHeader';
 import { logout as logoutService, isLoggedIn as checkIsLoggedIn, getAccessToken, loadHistoryFromDriveWithToken, getUserInfo, syncConfig } from '../../services/syncService';
 import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserName, setUserAvatar } from '../../store';
 import { resetConfig } from '../../store';
+import { SettingsIcon } from '../../common/svgIcon';
 
 interface ConfigInfoProps {
   isOpen: boolean;
@@ -342,9 +343,7 @@ export const ConfigInfoButton: React.FC<ConfigInfoButtonProps> = ({ onClick }) =
       onClick={onClick}
       aria-label={t('settings_openSettings')}
       className={styles.closeButton}>
-      <svg className={`icon ${styles.closeIcon}`} aria-hidden="true">
-        <use xlinkHref="#icon-shezhi"></use>
-      </svg>
+      <SettingsIcon className={`icon ${styles.closeIcon}`} />
     </button>
   );
 };

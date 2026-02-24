@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../../index.module.css';
 import Button from '../../../Button';
+import { CloseIcon, Google } from '../../../../common/svgIcon';
 
 export interface ConfigInfoHeaderProps {
   isLoggedIn: boolean | null;
@@ -77,12 +78,7 @@ const ConfigInfoHeader: React.FC<ConfigInfoHeaderProps> = ({
               {isLoggingIn ? (
                 <span className={styles.accountSignInSpinner} aria-hidden />
               ) : (
-                <img
-                  className={styles.accountSignInIcon}
-                  src="/icon/google.svg"
-                  alt=""
-                  aria-hidden
-                />
+                <Google className={styles.accountSignInIcon} />
               )}
               <span className={styles.accountSignInText}>
                 {t('popup_loginWithGoogle') || '通过Google登录'}
@@ -96,9 +92,7 @@ const ConfigInfoHeader: React.FC<ConfigInfoHeaderProps> = ({
         aria-label={t('settings_closeSettings')}
         className={styles.closeButton}
       >
-        <svg className={`icon ${styles.closeIcon}`} aria-hidden="true">
-          <use xlinkHref="#icon-guanbi"></use>
-        </svg>
+        <CloseIcon className={styles.closeIcon} />
       </button>
     </>
   );

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './index.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../../store/types';
@@ -6,6 +6,14 @@ import { setChooseEngine } from '../../store';
 import type { SearchEngine } from '../../types.ts';
 import { useI18n } from '../../hooks/useI18n';
 import Button from '../Button';
+import { DefaultSearch, Google, Bing, Baidu, CloseIcon } from '../../common/svgIcon';
+
+const searchEngineIconMap: Record<string, React.FC<{ className?: string }>> = {
+  default: DefaultSearch,
+  google: Google,
+  bing: Bing,
+  baidu: Baidu,
+};
 
 const Search: React.FC = () => {
   const [searchContent, setSearchContent] = useState('');
@@ -93,30 +101,10 @@ const Search: React.FC = () => {
   }, [createWebSearchFunction, isDirectLink]);
 
   const initialEngines: SearchEngine[] = [
-    {
-      key: 'default',
-      name: t('search_defaultEngine'),
-      favicon: 'icon/default-search.svg',
-      searchFunction: defaultSearchFunction,
-    },
-    {
-      key: 'google',
-      name: t('engines_google'),
-      favicon: 'icon/google.svg',
-      searchFunction: createWebSearchFunction('https://www.google.com/search?', 'q'),
-    },
-    {
-      key: 'bing',
-      name: t('engines_bing'),
-      favicon: 'icon/bing.svg',
-      searchFunction: createWebSearchFunction('https://www.bing.com/search?', 'q'),
-    },
-    {
-      key: 'baidu',
-      name: t('engines_baidu'),
-      favicon: 'icon/baidu.svg',
-      searchFunction: createWebSearchFunction('https://www.baidu.com/s?', 'wd'),
-    },
+    { key: 'default', name: t('search_defaultEngine'), favicon: '', searchFunction: defaultSearchFunction },
+    { key: 'google', name: t('engines_google'), favicon: '', searchFunction: createWebSearchFunction('https://www.google.com/search?', 'q') },
+    { key: 'bing', name: t('engines_bing'), favicon: '', searchFunction: createWebSearchFunction('https://www.bing.com/search?', 'q') },
+    { key: 'baidu', name: t('engines_baidu'), favicon: '', searchFunction: createWebSearchFunction('https://www.baidu.com/s?', 'wd') },
   ];
 
   const currentEngine = initialEngines.find((engine) => engine.key === chooseEngine) || initialEngines[0];
@@ -285,20 +273,11 @@ const Search: React.FC = () => {
 
   // 渲染引擎图标
   const renderEngineIcon = (engine: SearchEngine, className?: string) => {
-    if (engine.key === 'default') {
-      return (
-        <svg className={`icon ${styles.defaultIcon} ${className || ''}`} aria-hidden="true">
-          <use xlinkHref="#icon-sousuo"></use>
-        </svg>
-      );
+    const IconComponent = searchEngineIconMap[engine.key];
+    if (IconComponent) {
+      return <IconComponent className={`icon ${styles.defaultIcon} ${className || ''}`.trim()} />;
     }
-    return (
-      <img
-        src={engine.favicon}
-        alt={`${engine.name} favicon`}
-        className={className}
-      />
-    );
+    return null;
   };
 
   return (
@@ -314,9 +293,8 @@ const Search: React.FC = () => {
             {initialEngines.map((engine) => (
               <div
                 key={engine.key}
-                className={`${styles.engineItem} ${
-                  engine.key === chooseEngine ? styles.selected : ''
-                }`}
+                className={`${styles.engineItem} ${engine.key === chooseEngine ? styles.selected : ''
+                  }`}
                 onClick={(e) => handleEngineChange(engine.key, e)}
                 onMouseDown={(e) => e.preventDefault()}>
                 {renderEngineIcon(engine)}
@@ -348,9 +326,7 @@ const Search: React.FC = () => {
             aria-label={t('search_clearSearch')}
             type="button"
             className={styles.clearButton}>
-            <svg className={`icon ${styles.clearIcon}`} aria-hidden="true">
-              <use xlinkHref="#icon-guanbi"></use>
-            </svg>
+            <CloseIcon className={styles.clearIcon} />
           </Button>
         )}
 
@@ -366,9 +342,8 @@ const Search: React.FC = () => {
               suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className={`${styles.suggestionItem} ${
-                    index === selectedIndex ? styles.selected : ''
-                  }`}
+                  className={`${styles.suggestionItem} ${index === selectedIndex ? styles.selected : ''
+                    }`}
                   onClick={(e) => handleSuggestionClick(suggestion, e)}
                   onMouseDown={(e) => e.preventDefault()}
                   onMouseEnter={() => setSelectedIndex(index)}>

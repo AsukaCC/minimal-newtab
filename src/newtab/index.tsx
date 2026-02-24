@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import '../style.css';
-import '../utils/iconfont.js';
 import { store, persistor } from '../store';
 import ThemeButton from '../components/ThemeButton';
 import { useTheme } from '../hooks/useTheme';

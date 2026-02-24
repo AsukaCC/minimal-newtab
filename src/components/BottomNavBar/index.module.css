@@ -1,41 +1,153 @@
 .nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md) calc(var(--spacing-lg) + 8px);
+  width: auto;
+  max-width: 75%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.fadeViewport {
+  position: relative;
   width: 100%;
+  pointer-events: auto;
+}
+
+.scrollContainer {
+  --fade-size: 26px;
+  --item-width: 58px;
+  --item-gap: 2px;
+  /* 由 item-width 按比例派生：link 约 52% | 图标约 link 的 55% | 上抬间距约 link 的 32% | hover 上移约 link 的 18% */
+  --link-size: calc(var(--item-width) * 0.9);
+  --icon-size: calc(var(--link-size) * 0.5455);
+  --lift-space: calc(var(--link-size) * 0.218);
+  --hover-lift: calc(var(--link-size) * -0.0818);
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-x;
+  pointer-events: auto;
+  padding-top: var(--lift-space);
+  padding-bottom: 2px;
+  box-sizing: content-box;
+}
+
+.withFade {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000000 var(--fade-size),
+    #000000 calc(100% - var(--fade-size)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000000 var(--fade-size),
+    #000000 calc(100% - var(--fade-size)),
+    transparent 100%
+  );
+}
+
+@supports not ((-webkit-mask-image: linear-gradient(to right, #000, transparent)) or (mask-image: linear-gradient(to right, #000, transparent))) {
+  .fadeViewport[data-fade='true']::before,
+  .fadeViewport[data-fade='true']::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 26px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .fadeViewport[data-fade='true']::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg-primary, #ffffff), rgba(255, 255, 255, 0));
+  }
+
+  .fadeViewport[data-fade='true']::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg-primary, #ffffff), rgba(255, 255, 255, 0));
+  }
+}
+
+.scrollContainer:active {
+  cursor: grabbing;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .list {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  list-style: none;
   margin: 0;
   padding: 0;
+  /* 高度由内部内容自动撑开 */
+}
+
+.virtualWindow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--item-gap);
 }
 
 .item {
-  flex-shrink: 0;
+  margin-top: var(--lift-space);
+  width: var(--item-width);
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-sm);
+  z-index: 0;
+}
+
+.scrollContainer:not(.virtualHover) .item:hover {
+  z-index: 2;
+}
+
+.itemHovered {
+  z-index: 2;
+}
+.itemHovered .link {
+  transform: translateY(var(--hover-lift));
+}
+.itemHovered .link::before {
+  background: var(--nav-icon-bg-hover, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 4px 12px var(--shadow-md, rgba(15, 23, 42, 0.12));
+}
+.itemHovered .link:active {
+  transform: translateY(calc(var(--hover-lift) * 0.75));
+}
+.itemHovered .label {
+  opacity: 1;
 }
 
 .link {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--link-size);
+  height: var(--link-size);
   text-decoration: none;
-  /* 默认根据主题文字色来着色图标，更融入整体配色 */
   color: var(--text-primary);
   transition: transform 0.3s ease, background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
+  box-sizing: border-box;
 }
 
 .link::before {
@@ -44,26 +156,25 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 44px;
-  height: 44px;
+  width: var(--link-size);
+  height: var(--link-size);
   border-radius: 50%;
-  /* 浅色主题下使用轻微的玻璃卡片效果 */
   background: var(--nav-icon-bg, rgba(0, 0, 0, 0.04));
   transition: background 0.2s ease, box-shadow 0.2s ease;
   z-index: 0;
 }
 
-.link:hover {
-  transform: translateY(-8px);
+.scrollContainer:not(.virtualHover) .link:hover {
+  transform: translateY(var(--hover-lift));
 }
 
-.link:hover::before {
+.scrollContainer:not(.virtualHover) .link:hover::before {
   background: var(--nav-icon-bg-hover, rgba(0, 0, 0, 0.08));
   box-shadow: 0 4px 12px var(--shadow-md, rgba(15, 23, 42, 0.12));
 }
 
 .link:active {
-  transform: translateY(-6px);
+  transform: translateY(calc(var(--hover-lift) * 0.75));
 }
 
 .link:focus-visible {
@@ -75,8 +186,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: var(--icon-size);
+  height: var(--icon-size);
   position: relative;
   z-index: 1;
 }
@@ -87,27 +198,20 @@
   flex-shrink: 0;
 }
 
-.iconImage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
-}
-
 .label {
-  font-size: 11px;
+  font-size: calc(var(--icon-size) * 0.458);
   font-weight: 500;
   white-space: nowrap;
+  margin-top: 0.25em;
   opacity: 0;
   transition: opacity 0.3s ease;
   color: var(--text-primary);
   pointer-events: none;
+  position: relative;
+  z-index: 3;
 }
 
-.item:hover .label {
+.scrollContainer:not(.virtualHover) .item:hover .label {
   opacity: 1;
 }
 
@@ -116,4 +220,45 @@
   color: #ffffff;
   --nav-icon-bg: rgba(255, 255, 255, 0.08);
   --nav-icon-bg-hover: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='dark'] .fadeViewport[data-fade='true']::before {
+  background: linear-gradient(to right, var(--bg-primary, #10151d), rgba(16, 21, 29, 0));
+}
+
+[data-theme='dark'] .fadeViewport[data-fade='true']::after {
+  background: linear-gradient(to left, var(--bg-primary, #10151d), rgba(16, 21, 29, 0));
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .scrollContainer:not(.virtualHover) .link:hover {
+    transform: none;
+  }
+
+  .scrollContainer:not(.virtualHover) .item:hover .label {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .scrollContainer {
+    --fade-size: 18px;
+    --item-width: 84px;
+    --item-gap: 1px;
+  }
+
+  .fadeViewport[data-fade='true']::before,
+  .fadeViewport[data-fade='true']::after {
+    width: 18px;
+  }
+
 }

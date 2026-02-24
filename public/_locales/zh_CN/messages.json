@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "新标签页 – Minimal",
+    "message": "Minimal - 新标签页",
     "description": "扩展名称"
   },
   "extensionDescription": {
@@ -111,9 +111,6 @@
   },
   "settings_dragToSort": {
     "message": "拖动排序"
-  },
-  "settings_newItemLabel": {
-    "message": "新项目"
   },
   "settings_navBarVisible": {
     "message": "显示底部导航栏"

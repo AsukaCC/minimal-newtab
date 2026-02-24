@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "New Tab – Minimal",
+    "message": "Minimal - New Tab",
     "description": "Extension name"
   },
   "extensionDescription": {
@@ -111,9 +111,6 @@
   },
   "settings_dragToSort": {
     "message": "Drag to sort"
-  },
-  "settings_newItemLabel": {
-    "message": "New item"
   },
   "settings_navBarVisible": {
     "message": "Show bottom nav bar"

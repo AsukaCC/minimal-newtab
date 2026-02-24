@@ -80,7 +80,7 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
       ...items,
       {
         id: `item-${Date.now()}`,
-        label: t('settings_newItemLabel') || '新项目',
+        label: 'Untitled',
         url: 'https://',
         // 新增项默认不指定内置图标，后续通过 URL 自动生成 favicon
       },
