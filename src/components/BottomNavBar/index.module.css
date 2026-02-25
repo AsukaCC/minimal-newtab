@@ -12,6 +12,8 @@
   transform: translateX(-50%);
   box-sizing: border-box;
   pointer-events: none;
+  --item-width: 58px;
+  --item-gap: 2px;
 }
 
 .fadeViewport {
@@ -22,9 +24,6 @@
 
 .scrollContainer {
   --fade-size: 26px;
-  --item-width: 58px;
-  --item-gap: 2px;
-  /* 由 item-width 按比例派生：link 约 52% | 图标约 link 的 55% | 上抬间距约 link 的 32% | hover 上移约 link 的 18% */
   --link-size: calc(var(--item-width) * 0.9);
   --icon-size: calc(var(--link-size) * 0.5455);
   --lift-space: calc(var(--link-size) * 0.218);
@@ -190,6 +189,18 @@
   height: var(--icon-size);
   position: relative;
   z-index: 1;
+  color: var(--nav-bar-theme-color, var(--text-primary));
+}
+
+.iconWrap svg {
+  fill: var(--nav-bar-theme-color, currentColor);
+}
+
+.iconWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: hue-rotate(0deg) saturate(0) brightness(var(--nav-bar-theme-color-brightness, 1));
 }
 
 .icon {
@@ -215,7 +226,7 @@
   opacity: 1;
 }
 
-/* 暗色主题下整体提亮背景，保证对比度与层次感 */
+
 [data-theme='dark'] .link {
   color: #ffffff;
   --nav-icon-bg: rgba(255, 255, 255, 0.08);
@@ -252,8 +263,8 @@
 
   .scrollContainer {
     --fade-size: 18px;
-    --item-width: 84px;
-    --item-gap: 1px;
+    --link-size: calc(var(--item-width) * 0.80);
+    --icon-size: calc(var(--link-size) * 0.50);
   }
 
   .fadeViewport[data-fade='true']::before,
@@ -261,4 +272,7 @@
     width: 18px;
   }
 
+  .label {
+    font-size: 11px;
+  }
 }

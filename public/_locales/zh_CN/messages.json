@@ -68,7 +68,7 @@
     "message": "确定要重置为默认列表吗？"
   },
   "settings_navBarEmpty": {
-    "message": "暂无导航项，点击「添加」按钮添加新项目"
+    "message": "暂无网站，点击右上角「添加网站」按钮添加新网站"
   },
   "settings_reset": {
     "message": "重置"
@@ -117,6 +117,48 @@
   },
   "settings_navBarVisibleDesc": {
     "message": "在新标签页底部显示或隐藏底部导航栏"
+  },
+  "settings_navBarThemeColor": {
+    "message": "图标主题色"
+  },
+  "settings_navBarThemeColorDesc": {
+    "message": "自定义底部导航栏图标的颜色"
+  },
+  "settings_navBarItemGap": {
+    "message": "布局间距"
+  },
+  "settings_navBarItemGapDesc": {
+    "message": "调整图标之间的间距大小"
+  },
+  "settings_navBarIconSize": {
+    "message": "图标大小"
+  },
+  "settings_navBarIconSizeDesc": {
+    "message": "调整图标的大小"
+  },
+  "settings_basicSettings": {
+    "message": "基础设置"
+  },
+  "settings_appearanceSettings": {
+    "message": "外观设置"
+  },
+  "settings_websiteManagement": {
+    "message": "网站管理"
+  },
+  "settings_manageSites": {
+    "message": "管理网站列表"
+  },
+  "settings_manageSitesDesc": {
+    "message": "添加、编辑、删除和排序您常用的网站"
+  },
+  "settings_resetConfig": {
+    "message": "重置配置"
+  },
+  "settings_navBarResetListConfirm": {
+    "message": "确定要重置网站列表吗？此操作将恢复为默认网站，自定义的网站将被清除。"
+  },
+  "settings_navBarResetConfigConfirm": {
+    "message": "确定要重置导航栏配置吗？此操作将恢复主题色、间距、图标大小等配置为默认值。"
   },
   "common_back": {
     "message": "返回"

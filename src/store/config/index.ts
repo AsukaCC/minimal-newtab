@@ -11,6 +11,9 @@ export {
   setLanguage,
   setNavItems,
   setShowNavBar,
+  setNavBarThemeColor,
+  setNavBarItemGap,
+  setNavBarIconSize,
   loadConfig,
   resetConfig,
 } from './configSlice';

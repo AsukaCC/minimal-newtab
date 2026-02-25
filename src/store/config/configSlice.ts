@@ -4,7 +4,8 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import dayjs from 'dayjs';
-import type { NavItem } from '../../components/BottomNavBar';
+import type { NavItem } from '../../types';
+import { defaultNavItems } from '../../common/defaultWebsites';
 
 /**
  * 配置状态接口
@@ -19,6 +20,9 @@ export interface ConfigState {
   language: string; // 语言设置，'zh-CN' 或 'en-US'
   navItems?: NavItem[]; // 导航栏项目列表
   showNavBar?: boolean; // 是否显示底部导航栏
+  navBarThemeColor?: string; // 底部导航栏图标主题色
+  navBarItemGap?: number; // 底部导航栏图标间距（像素）
+  navBarIconSize?: number; // 底部导航栏图标大小（像素）
 }
 
 /**
@@ -60,26 +64,6 @@ export function generateConfigId(): string {
 }
 
 /**
- * 默认导航栏项目
- */
-const defaultNavItems: NavItem[] = [
-  {
-    id: 'youtube',
-    label: 'YouTube',
-    url: 'https://www.youtube.com',
-    icon: 'youtube',
-  },
-  {
-    id: 'chatgpt',
-    label: 'ChatGPT',
-    url: 'https://chat.openai.com',
-    icon: 'chatgpt',
-  },
-  { id: 'github', label: 'GitHub', url: 'https://github.com', icon: 'github' },
-  { id: 'x', label: 'X', url: 'https://x.com', icon: 'x' },
-];
-
-/**
  * 初始状态
  */
 const initialState: ConfigState = {
@@ -91,6 +75,9 @@ const initialState: ConfigState = {
   language: getSystemLanguage(), // 默认使用系统语言
   navItems: defaultNavItems, // 默认导航栏项目
   showNavBar: true, // 默认显示底部导航栏
+  navBarThemeColor: undefined, // 默认不单独设置导航栏主题色，跟随系统
+  navBarItemGap: 2, // 默认图标间距 2px
+  navBarIconSize: 32, // 默认图标大小 32px
 };
 
 /**
@@ -157,6 +144,30 @@ const configSlice = createSlice({
     },
 
     /**
+     * 设置底部导航栏图标主题色
+     */
+    setNavBarThemeColor: (state, action: PayloadAction<string>) => {
+      state.navBarThemeColor = action.payload;
+      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    },
+
+    /**
+     * 设置底部导航栏图标间距
+     */
+    setNavBarItemGap: (state, action: PayloadAction<number>) => {
+      state.navBarItemGap = action.payload;
+      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    },
+
+    /**
+     * 设置底部导航栏图标大小
+     */
+    setNavBarIconSize: (state, action: PayloadAction<number>) => {
+      state.navBarIconSize = action.payload;
+      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    },
+
+    /**
      * 从存储中加载配置（不更新修改日期）
      * 注意：传入的配置应该是已经规范化的数据
      * 注意：不会自动创建 configId，configId 只在同步时创建
@@ -195,6 +206,9 @@ export const {
   setLanguage,
   setNavItems,
   setShowNavBar,
+  setNavBarThemeColor,
+  setNavBarItemGap,
+  setNavBarIconSize,
   loadConfig,
   resetConfig,
 } = configSlice.actions;

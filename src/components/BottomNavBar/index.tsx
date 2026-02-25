@@ -2,31 +2,19 @@ import React, { useRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from '../../store/hooks';
 import type { RootState } from '../../store/types';
 import styles from './index.module.css';
-import { YouTube, ChatGPT, GitHub, X, defaultWebsiteIcon as DefaultWebsiteIcon } from '../../common/svgIcon';
+import { YouTube, ChatGPT, GitHub, X, defaultWebsiteIcon as DefaultWebsiteIcon, Claude } from '../../common/svgIcon';
+import { defaultNavItems } from '../../common/defaultWebsites';
+import type { NavItem } from '../../types';
 
-const iconByKey: Record<'youtube' | 'chatgpt' | 'github' | 'x', React.FC<{ className?: string }>> = {
+const iconByKey: Record<'youtube' | 'chatgpt' | 'github' | 'x' | 'claude', React.FC<{ className?: string }>> = {
     youtube: YouTube,
     chatgpt: ChatGPT,
     github: GitHub,
     x: X,
+    claude: Claude,
 };
 
-export interface NavItem {
-    id: string;
-    label: string;
-    url: string;
-    /** 预设图标 key，仅用于内置站点（YouTube/GitHub 等） */
-    icon?: 'youtube' | 'chatgpt' | 'github' | 'x';
-    /** 站点图标地址（通过 Google Favicon API 自动生成） */
-    iconUrl?: string;
-}
-
-const defaultItems: NavItem[] = [
-    { id: 'youtube', label: 'YouTube', url: 'https://www.youtube.com', icon: 'youtube' },
-    { id: 'chatgpt', label: 'ChatGPT', url: 'https://chat.openai.com', icon: 'chatgpt' },
-    { id: 'github', label: 'GitHub', url: 'https://github.com', icon: 'github' },
-    { id: 'x', label: 'X', url: 'https://x.com', icon: 'x' },
-];
+export type { NavItem };
 
 export interface BottomNavBarProps {
     items?: NavItem[];
@@ -35,8 +23,6 @@ export interface BottomNavBarProps {
 
 const TRACK_CYCLES = 9;
 const VIRTUAL_BUFFER = 4;
-const DEFAULT_ITEM_WIDTH = 84;
-const DEFAULT_ITEM_GAP = 1;
 
 const isValidUrl = (url: string): boolean => {
     if (!url) return false;
@@ -63,7 +49,10 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     // 先取出所有需要的 store 值，保证 hooks 次序稳定
     const showNavBarValue = useAppSelector((state: RootState) => state.config.showNavBar);
     const storeNavItems = useAppSelector((state: RootState) => state.config.navItems);
-    const items = propItems || storeNavItems || defaultItems;
+    const navBarThemeColor = useAppSelector((state: RootState) => state.config.navBarThemeColor);
+    const navBarItemGap = useAppSelector((state: RootState) => state.config.navBarItemGap);
+    const navBarIconSize = useAppSelector((state: RootState) => state.config.navBarIconSize);
+    const items = propItems || storeNavItems || defaultNavItems;
 
     const showNavBar = typeof showNavBarValue === 'boolean' ? showNavBarValue : true;
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -72,8 +61,6 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     const [hasOverflow, setHasOverflow] = useState(false);
     const [viewportWidth, setViewportWidth] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
-    const [itemWidth, setItemWidth] = useState(DEFAULT_ITEM_WIDTH);
-    const [itemGap, setItemGap] = useState(DEFAULT_ITEM_GAP);
     const dragRef = useRef({
         isDragging: false,
         pointerId: -1,
@@ -86,23 +73,16 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
 
     const itemCount = items.length;
+    // 直接使用 store 中的配置值计算，不再从 CSS 读取
+    const configuredItemWidth = (navBarIconSize ?? 32) * 1.818;
+    const configuredItemGap = navBarItemGap ?? 2;
+    const itemWidth = configuredItemWidth;
+    const itemGap = configuredItemGap;
     const itemStride = itemWidth + itemGap;
     const cycleWidth = itemCount * itemStride;
     const trackSlots = Math.max(itemCount * TRACK_CYCLES, itemCount);
     const centerCycleIndex = Math.floor(TRACK_CYCLES / 2);
     const centerBaseScroll = centerCycleIndex * cycleWidth;
-
-    const syncLayoutFromCss = useCallback(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        const computedStyle = window.getComputedStyle(el);
-        const cssItemWidth = Number.parseFloat(computedStyle.getPropertyValue('--item-width'));
-        const cssItemGap = Number.parseFloat(computedStyle.getPropertyValue('--item-gap'));
-        const nextItemWidth = Number.isFinite(cssItemWidth) && cssItemWidth > 0 ? cssItemWidth : DEFAULT_ITEM_WIDTH;
-        const nextItemGap = Number.isFinite(cssItemGap) && cssItemGap >= 0 ? cssItemGap : DEFAULT_ITEM_GAP;
-        setItemWidth((prev) => (Math.abs(prev - nextItemWidth) < 0.01 ? prev : nextItemWidth));
-        setItemGap((prev) => (Math.abs(prev - nextItemGap) < 0.01 ? prev : nextItemGap));
-    }, []);
 
     const updateMetrics = useCallback(() => {
         const el = scrollRef.current;
@@ -183,20 +163,18 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
     useEffect(() => {
         if (itemCount === 0) return;
-        syncLayoutFromCss();
         updateMetrics();
-    }, [itemCount, syncLayoutFromCss, updateMetrics]);
+    }, [itemCount, updateMetrics, configuredItemWidth, configuredItemGap]);
 
     useEffect(() => {
         const el = scrollRef.current;
         if (!el || !('ResizeObserver' in window)) return;
         const observer = new ResizeObserver(() => {
-            syncLayoutFromCss();
             updateMetrics();
         });
         observer.observe(el);
         return () => observer.disconnect();
-    }, [syncLayoutFromCss, updateMetrics]);
+    }, [updateMetrics]);
 
     useEffect(() => {
         if (!hasOverflow || cycleWidth <= 0) return;
@@ -272,13 +250,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         }
     }, []);
 
-    if (!showNavBar) {
-        return null;
-    }
-    if (itemCount === 0) {
-        return null;
-    }
-
+    // 必须在任何条件 return 之前调用，保证 hooks 顺序稳定
     const {
         visibleSlots,
         listWidth,
@@ -303,11 +275,23 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         };
     }, [hasOverflow, itemCount, itemStride, scrollLeft, trackSlots, viewportWidth]);
 
+    if (!showNavBar) {
+        return null;
+    }
+    if (itemCount === 0) {
+        return null;
+    }
+
     return (
         <nav
             className={`${styles.nav} ${className}`}
             role="navigation"
             aria-label="底部导航"
+            style={{
+                '--nav-bar-theme-color': navBarThemeColor || 'var(--color-primary, #667eea)',
+                '--item-width': `${configuredItemWidth}px`,
+                '--item-gap': `${configuredItemGap}px`,
+            } as React.CSSProperties}
         >
             <div className={styles.fadeViewport} data-fade={hasOverflow}>
                 <div

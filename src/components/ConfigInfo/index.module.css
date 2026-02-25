@@ -151,9 +151,7 @@
   flex-direction: column;
   gap: 0;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0;
+  overflow: hidden;
 }
 
 /* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */

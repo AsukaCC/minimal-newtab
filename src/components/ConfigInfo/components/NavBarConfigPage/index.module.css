@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px;
+  padding: 16px;
   gap: 20px;
 }
 
@@ -23,6 +23,32 @@
 .actions {
   display: flex;
   gap: 12px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateX(-2px);
+}
+
+.backButton:active {
+  transform: translateX(0);
 }
 
 .resetButton,
@@ -72,6 +98,26 @@
   padding-right: 4px;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section:last-child {
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 4px 0;
+  padding-left: 4px;
+}
+
 .visibleRow {
   display: flex;
   align-items: center;
@@ -104,6 +150,85 @@
   font-size: 13px;
   color: var(--text-secondary);
   opacity: 0.9;
+}
+
+.colorPicker {
+  width: 50px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.colorPicker::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 8px;
+}
+
+.colorPicker::-webkit-color-swatch {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.colorPicker::-moz-color-swatch {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary, #667eea);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary, #667eea);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.sliderValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 36px;
+  text-align: right;
 }
 
 .empty {
@@ -261,6 +386,67 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+.manageSitesCard {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.manageSitesContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.manageSitesText {
+  flex: 1;
+  min-width: 0;
+}
+
+.manageSitesTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.manageSitesDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.manageSitesButton {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.manageSitesButton:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.manageSitesButton:active {
+  transform: translateY(0);
+}
+
 .footer {
   display: flex;
   justify-content: flex-end;
@@ -302,23 +488,32 @@
 @media (prefers-color-scheme: dark) {
   .resetButton,
   .addButton,
+  .backButton,
   .item,
   .visibleRow,
   .iconSelect,
   .deleteButton,
   .cancelFooterButton,
-  .saveFooterButton {
+  .saveFooterButton,
+  .manageSitesButton {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.12);
   }
 
   .resetButton:hover,
   .addButton:hover,
+  .backButton:hover,
   .item:hover,
   .deleteButton:hover,
-  .cancelFooterButton:hover {
+  .cancelFooterButton:hover,
+  .manageSitesButton:hover {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  .manageSitesCard {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
   }
 
   .inlineInput {
@@ -338,33 +533,57 @@
 
 @media screen and (max-width: 768px) {
   .container {
-    padding: 16px;
+    padding: 12px;
     gap: 16px;
   }
 
   .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
-  .actions {
-    width: 100%;
+  .header .backButton {
+    order: 0;
+    flex-shrink: 0;
+  }
+
+  .header .title {
+    order: 1;
+    text-align: left;
+    font-size: 18px;
+  }
+
+  .header .actions {
+    order: 2;
+    flex-shrink: 0;
+    gap: 8px;
   }
 
   .resetButton,
   .addButton {
-    flex: 1;
+    padding: 6px 12px;
+    font-size: 13px;
   }
 
   .itemBody {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .itemInfo {
+    flex: 1;
+    min-width: 0;
   }
 
   .itemRight {
-    width: 100%;
-    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .deleteButton {
+    padding: 4px 10px;
+    font-size: 12px;
   }
 
   .footer {
@@ -373,6 +592,15 @@
 
   .cancelFooterButton,
   .saveFooterButton {
+    width: 100%;
+  }
+
+  .manageSitesContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manageSitesButton {
     width: 100%;
   }
 }

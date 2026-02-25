@@ -68,7 +68,7 @@
     "message": "Reset to default list?"
   },
   "settings_navBarEmpty": {
-    "message": "No nav items. Click \"Add\" to add new items"
+    "message": "No websites yet. Click \"Add Website\" button in the top right corner to add a new website"
   },
   "settings_reset": {
     "message": "Reset"
@@ -117,6 +117,48 @@
   },
   "settings_navBarVisibleDesc": {
     "message": "Show or hide the bottom navigation bar on the new tab page"
+  },
+  "settings_navBarThemeColor": {
+    "message": "Icon Theme Color"
+  },
+  "settings_navBarThemeColorDesc": {
+    "message": "Customize the color of bottom navigation bar icons"
+  },
+  "settings_navBarItemGap": {
+    "message": "Layout Spacing"
+  },
+  "settings_navBarItemGapDesc": {
+    "message": "Adjust spacing between icons"
+  },
+  "settings_navBarIconSize": {
+    "message": "Icon Size"
+  },
+  "settings_navBarIconSizeDesc": {
+    "message": "Adjust icon size"
+  },
+  "settings_basicSettings": {
+    "message": "Basic Settings"
+  },
+  "settings_appearanceSettings": {
+    "message": "Appearance"
+  },
+  "settings_websiteManagement": {
+    "message": "Website Management"
+  },
+  "settings_manageSites": {
+    "message": "Manage Website List"
+  },
+  "settings_manageSitesDesc": {
+    "message": "Add, edit, delete and sort your favorite websites"
+  },
+  "settings_resetConfig": {
+    "message": "Reset Config"
+  },
+  "settings_navBarResetListConfirm": {
+    "message": "Are you sure you want to reset the website list? This will restore default websites and remove custom ones."
+  },
+  "settings_navBarResetConfigConfirm": {
+    "message": "Are you sure you want to reset navigation bar settings? This will restore theme color, spacing, icon size and other settings to default values."
   },
   "common_back": {
     "message": "Back"
