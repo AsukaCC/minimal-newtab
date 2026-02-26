@@ -149,7 +149,8 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
       if (loggedIn) {
         try {
           dispatch(setLoadingHistories(true));
-          const token = await getAccessToken();
+          // 使用非交互式方式获取 token，避免触发登录弹窗
+          const token = await getAccessToken(false);
           const historyData = await loadHistoryFromDriveWithToken(token);
           if (historyData && historyData.histories) {
             dispatch(setHistories(historyData.histories));
@@ -201,58 +202,44 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
 
     setIsLoggingIn(true);
 
-    Promise.resolve().then(async () => {
-      try {
-        const token = await getAccessToken();
+    try {
+      const token = await getAccessToken();
 
-        if (!token) {
-          throw new Error('未获取到访问令牌');
-        }
-
-        setIsLoggingIn(false);
-
-        checkGoogleLoginStatus();
-
-        setTimeout(async () => {
-          try {
-            console.log('[ConfigInfo] 开始异步同步配置...');
-            const result = await syncConfig();
-            if (result.message) {
-              console.log('[ConfigInfo] 同步结果:', result.message);
-            }
-          } catch (syncErr: any) {
-            console.error('[ConfigInfo] 异步同步配置失败:', syncErr);
-          }
-        }, 100);
-      } catch (err: any) {
-        const errorMessage = err.message || t('popup_syncFailed') || '登录失败';
-
-        const isUserCancelled = errorMessage.includes('用户取消了登录') ||
-          errorMessage.includes('user cancelled') ||
-          errorMessage.includes('access_denied') ||
-          (errorMessage.includes('OAuth2') && errorMessage.includes('invalid_grant')) ||
-          errorMessage.includes('did not approve access');
-
-        if (isUserCancelled) {
-          dispatch(setLoggedIn(false));
-        } else {
-          const is401Error = errorMessage.includes('401') || errorMessage.toLowerCase().includes('unauthorized');
-          const is403Error = errorMessage.includes('403') || errorMessage.toLowerCase().includes('forbidden') || errorMessage.includes('权限不足');
-          const authKeywords = ['登录', 'login', 'token', '认证', 'auth', '授权', 'authorize', 'sign in', '请先登录', '权限不足', 'insufficient', 'scopes'];
-          const isAuthError = is401Error || is403Error || authKeywords.some(keyword =>
-            errorMessage.toLowerCase().includes(keyword.toLowerCase())
-          );
-
-          if (isAuthError) {
-            dispatch(setLoggedIn(false));
-          } else {
-            checkGoogleLoginStatus();
-          }
-        }
-      } finally {
-        setIsLoggingIn(false);
+      if (!token) {
+        throw new Error('未获取到访问令牌');
       }
-    });
+
+      await checkGoogleLoginStatus();
+
+      // 异步同步配置，不阻塞登录流程
+      setTimeout(async () => {
+        try {
+          console.log('[ConfigInfo] 开始异步同步配置...');
+          const result = await syncConfig();
+          if (result.message) {
+            console.log('[ConfigInfo] 同步结果:', result.message);
+          }
+        } catch (syncErr: any) {
+          console.error('[ConfigInfo] 异步同步配置失败:', syncErr);
+        }
+      }, 100);
+    } catch (err: any) {
+      const errorMessage = err.message || '';
+      const isUserCancelled = errorMessage.includes('用户取消了登录') ||
+        errorMessage.includes('user cancelled') ||
+        errorMessage.includes('access_denied') ||
+        errorMessage.includes('did not approve access') ||
+        (errorMessage.includes('OAuth2') && errorMessage.includes('invalid_grant'));
+
+      if (!isUserCancelled) {
+        console.error('[ConfigInfo] 登录失败:', errorMessage);
+      }
+      // 无论何种错误，直接清除登录状态，不再调用 checkGoogleLoginStatus
+      // 避免 getAccessToken(interactive:true) 再次弹出登录窗口
+      dispatch(setLoggedIn(false));
+    } finally {
+      setIsLoggingIn(false);
+    }
   }, [isLoggingIn, checkGoogleLoginStatus, t, dispatch]);
 
   // 处理登出
@@ -267,19 +254,22 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
 
     setIsLoggingOut(true);
 
-    Promise.resolve().then(async () => {
-      try {
-        await logoutService();
-        dispatch(resetConfig());
-        dispatch(setLoggedIn(false));
-      } catch (err: any) {
-        console.error('[ConfigInfo] 登出失败:', err);
-        checkGoogleLoginStatus();
-      } finally {
-        setIsLoggingOut(false);
-      }
-    });
-  }, [isLoggingOut, checkGoogleLoginStatus, t, dispatch]);
+    try {
+      await logoutService();
+    } catch (err: any) {
+      console.error('[ConfigInfo] 登出失败:', err);
+    } finally {
+      // 无论成功失败，始终清除本地状态，不调用 checkGoogleLoginStatus
+      // 避免因 getAccessToken(interactive:true) 意外触发登录弹窗
+      dispatch(resetConfig());
+      dispatch(setLoggedIn(false));
+      dispatch(setUserEmail(null));
+      dispatch(setUserName(null));
+      dispatch(setUserAvatar(null));
+      dispatch(setHistories([]));
+      setIsLoggingOut(false);
+    }
+  }, [isLoggingOut, t, dispatch]);
 
   // 返回上一页
   const handleBack = useCallback(() => {

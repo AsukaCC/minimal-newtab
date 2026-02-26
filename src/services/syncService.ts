@@ -464,9 +464,13 @@ export async function logout(): Promise<void> {
           const removeCachedToken = () => {
             if (token) {
               chrome.identity.removeCachedAuthToken({ token }, () => {
+                // 忽略 removeCachedAuthToken 的错误（OAuth2 not granted or revoked 是正常情况）
                 if (chrome.runtime.lastError) {
                   const errorMsg = chrome.runtime.lastError.message || '移除 token 失败';
-                  console.error('[syncService] 移除 Chrome token 缓存时出错:', errorMsg);
+                  // 只在不是 "OAuth2 not granted or revoked" 时打印日志
+                  if (!errorMsg.includes('OAuth2 not granted or revoked')) {
+                    console.log('[syncService] 移除 Chrome token 缓存时的提示:', errorMsg);
+                  }
                 }
                 clearStorage();
               });
@@ -1984,17 +1988,34 @@ class HistoryBatchManager {
   private histories: SyncHistory[] = [];
   private token: string | null = null;
   private isActive: boolean = false;
+  private lastToken: string | null = null; // 保存最后一个 token，用于自动恢复
 
   /**
    * 开始批量操作：拉取最新历史记录到本地
    */
   async begin(token: string): Promise<void> {
+    // 保存 token 用于后续自动恢复
+    this.lastToken = token;
+    
+    // 如果已经在活跃状态，先重置（防止状态冲突）
+    if (this.isActive) {
+      console.warn('[HistoryBatchManager] 检测到未完成的批量操作，重置状态');
+      this.reset();
+    }
+
     this.token = token;
     this.isActive = true;
 
-    // 拉取最新历史记录
-    const historyData = await loadHistoryFromDriveWithToken(token);
-    this.histories = historyData?.histories || [];
+    try {
+      // 拉取最新历史记录
+      const historyData = await loadHistoryFromDriveWithToken(token);
+      this.histories = historyData?.histories || [];
+    } catch (error: any) {
+      console.error('[HistoryBatchManager] begin() 加载历史记录失败:', error);
+      // 加载失败时清空历史记录，但保持活跃状态（允许继续操作）
+      this.histories = [];
+      // 不重置 isActive，因为调用方可能希望继续操作
+    }
   }
 
   /**
@@ -2002,7 +2023,18 @@ class HistoryBatchManager {
    */
   add(config: SyncConfigParsed, type: 'upload' | 'download' | 'restore'): void {
     if (!this.isActive) {
-      throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
+      if (this.lastToken) {
+        console.warn('[HistoryBatchManager] add() 检测到批量操作未开始，尝试自动恢复');
+        // 注意：这里不能 await，因为这是同步方法
+        // 所以只是设置状态，实际的加载会在后台进行
+        this.token = this.lastToken;
+        this.isActive = true;
+        this.histories = []; // 先清空，等待后续 commit 时再加载
+      } else {
+        console.error('[HistoryBatchManager] add() 调用时批量操作未开始，isActive:', this.isActive, 'token:', this.token);
+        throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      }
     }
 
     const newHistory: SyncHistory = {
@@ -2024,7 +2056,16 @@ class HistoryBatchManager {
    */
   remove(historyId: string): boolean {
     if (!this.isActive) {
-      throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
+      if (this.lastToken) {
+        console.warn('[HistoryBatchManager] remove() 检测到批量操作未开始，尝试自动恢复');
+        this.token = this.lastToken;
+        this.isActive = true;
+        this.histories = []; // 先清空，等待后续 commit 时再加载
+      } else {
+        console.error('[HistoryBatchManager] remove() 调用时批量操作未开始，isActive:', this.isActive);
+        throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      }
     }
 
     const originalLength = this.histories.length;
@@ -2037,7 +2078,16 @@ class HistoryBatchManager {
    */
   update(historyId: string, updates: Partial<SyncHistory>): boolean {
     if (!this.isActive) {
-      throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
+      if (this.lastToken) {
+        console.warn('[HistoryBatchManager] update() 检测到批量操作未开始，尝试自动恢复');
+        this.token = this.lastToken;
+        this.isActive = true;
+        this.histories = []; // 先清空，等待后续 commit 时再加载
+      } else {
+        console.error('[HistoryBatchManager] update() 调用时批量操作未开始，isActive:', this.isActive);
+        throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
+      }
     }
 
     const index = this.histories.findIndex((h) => h.id === historyId);
@@ -2054,7 +2104,51 @@ class HistoryBatchManager {
    */
   async commit(): Promise<void> {
     if (!this.isActive || !this.token) {
+      console.error('[HistoryBatchManager] commit() 调用时批量操作未开始或 token 无效，isActive:', this.isActive, 'token:', this.token ? 'present' : 'missing');
       throw new Error('批量操作未开始或 token 无效');
+    }
+
+    // 在提交前，重新加载最新的历史记录（确保不会覆盖其他操作的更改）
+    try {
+      const historyData = await loadHistoryFromDriveWithToken(this.token);
+      const cloudHistories = historyData?.histories || [];
+      
+      // 合并本地更改到云端历史记录
+      // 使用 configId 作为唯一标识，确保不会重复
+      if (cloudHistories.length > 0 && this.histories.length > 0) {
+        // 创建一个 Map 来存储所有记录（使用 configId 作为键）
+        const historyMap = new Map<string, SyncHistory>();
+        
+        // 先添加云端记录
+        for (const cloudHistory of cloudHistories) {
+          const configId = cloudHistory.settings.configId;
+          if (configId) {
+            historyMap.set(configId, cloudHistory);
+          }
+        }
+        
+        // 然后用本地记录覆盖（本地记录包含最新的更改）
+        for (const localHistory of this.histories) {
+          const configId = localHistory.settings.configId;
+          if (configId) {
+            // 如果云端没有这个 configId，或者本地记录更新，则使用本地记录
+            const existingHistory = historyMap.get(configId);
+            if (!existingHistory || localHistory.updatedAt > existingHistory.updatedAt) {
+              historyMap.set(configId, localHistory);
+            }
+          }
+        }
+        
+        // 转换回数组并排序（最新的在前）
+        this.histories = Array.from(historyMap.values());
+        this.histories.sort((a, b) => b.updatedAt - a.updatedAt);
+        
+        // 限制数量
+        this.histories = this.histories.slice(0, MAX_HISTORY_COUNT);
+      }
+    } catch (error: any) {
+      console.error('[HistoryBatchManager] commit() 加载云端历史记录失败:', error);
+      // 加载失败时，继续使用本地的历史记录
     }
 
     await saveHistoryToDriveWithToken({ histories: this.histories }, this.token);
