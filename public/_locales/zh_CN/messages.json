@@ -62,7 +62,7 @@
     "message": "导航栏配置"
   },
   "settings_navBarConfigDescription": {
-    "message": "自定义底部导航栏的默认列表"
+    "message": "配置导航栏网站"
   },
   "settings_navBarResetConfirm": {
     "message": "确定要重置为默认列表吗？"
@@ -116,7 +116,7 @@
     "message": "显示底部导航栏"
   },
   "settings_navBarVisibleDesc": {
-    "message": "在新标签页底部显示或隐藏底部导航栏"
+    "message": "显示或隐藏底部导航栏"
   },
   "settings_navBarThemeColor": {
     "message": "图标主题色"
@@ -149,7 +149,7 @@
     "message": "管理网站列表"
   },
   "settings_manageSitesDesc": {
-    "message": "添加、编辑、删除和排序您常用的网站"
+    "message": "管理常用网站"
   },
   "settings_resetConfig": {
     "message": "重置配置"

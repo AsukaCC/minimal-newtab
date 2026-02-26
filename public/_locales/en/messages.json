@@ -62,7 +62,7 @@
     "message": "Nav Bar"
   },
   "settings_navBarConfigDescription": {
-    "message": "Customize the default list of the bottom nav bar"
+    "message": "Configure nav bar"
   },
   "settings_navBarResetConfirm": {
     "message": "Reset to default list?"
@@ -116,7 +116,7 @@
     "message": "Show bottom nav bar"
   },
   "settings_navBarVisibleDesc": {
-    "message": "Show or hide the bottom navigation bar on the new tab page"
+    "message": "Show or hide bottom nav bar"
   },
   "settings_navBarThemeColor": {
     "message": "Icon Theme Color"
@@ -149,7 +149,7 @@
     "message": "Manage Website List"
   },
   "settings_manageSitesDesc": {
-    "message": "Add, edit, delete and sort your favorite websites"
+    "message": "Manage websites"
   },
   "settings_resetConfig": {
     "message": "Reset Config"

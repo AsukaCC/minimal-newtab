@@ -1,15 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { setNavItems, setShowNavBar, setNavBarThemeColor, setNavBarItemGap, setNavBarIconSize } from '../../../../store';
+import { setShowNavBar, setNavBarThemeColor, setNavBarItemGap, setNavBarIconSize, setNavItems } from '../../../../store';
 import { useI18n } from '../../../../hooks/useI18n';
 import type { NavItem } from '../../../../types';
 import { defaultNavItems } from '../../../../common/defaultWebsites';
+import { DragMoveIcon } from '../../../../common/svgIcon';
 import styles from './index.module.css';
 import Switch from '../../../Switch';
-
-interface NavBarConfigPageProps {
-  onClose: () => void;
-}
 
 const DragHandle: React.FC<{ 'aria-label'?: string }> = (props) => (
   <span
@@ -26,38 +23,24 @@ const DragHandle: React.FC<{ 'aria-label'?: string }> = (props) => (
     tabIndex={-1}
     aria-label={props['aria-label']}
   >
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <circle cx="9" cy="6" r="1.5" />
-      <circle cx="15" cy="6" r="1.5" />
-      <circle cx="9" cy="12" r="1.5" />
-      <circle cx="15" cy="12" r="1.5" />
-      <circle cx="9" cy="18" r="1.5" />
-      <circle cx="15" cy="18" r="1.5" />
-    </svg>
+    <DragMoveIcon className={styles.dragIcon} />
   </span>
 );
 
-const ArrowLeft: React.FC<{ width?: number; height?: number }> = ({ width = 20, height = 20 }) => (
-  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <line x1="19" y1="12" x2="5" y2="12" />
-    <polyline points="12 19 5 12 12 5" />
-  </svg>
-);
-
-const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
+const NavBarConfigPage: React.FC = () => {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
-  const storedNavItems = useAppSelector((state) => state.config.navItems);
   const showNavBar = useAppSelector(
     (state) => (typeof state.config.showNavBar === 'boolean' ? state.config.showNavBar : true),
   );
   const navBarThemeColor = useAppSelector((state) => state.config.navBarThemeColor);
   const navBarItemGap = useAppSelector((state) => state.config.navBarItemGap);
   const navBarIconSize = useAppSelector((state) => state.config.navBarIconSize);
+  const storedNavItems = useAppSelector((state) => state.config.navItems);
+
   const [items, setItems] = useState<NavItem[]>(storedNavItems || defaultNavItems);
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
   const [editingUrlId, setEditingUrlId] = useState<string | null>(null);
-  const [showListPage, setShowListPage] = useState(false);
   const labelInputRef = useRef<HTMLInputElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
@@ -107,17 +90,14 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
     [dispatch],
   );
 
-  const handleAdd = useCallback(() => {
-    setItems([
-      ...items,
-      {
-        id: `item-${Date.now()}`,
-        label: 'Untitled',
-        url: 'https://',
-        // 新增项默认不指定内置图标，后续通过 URL 自动生成 favicon
-      },
-    ]);
-  }, [items, t]);
+  const handleReset = useCallback(() => {
+    if (confirm(t('settings_navBarResetConfigConfirm'))) {
+      // 重置配置项到默认值
+      dispatch(setNavBarThemeColor('#667eea'));
+      dispatch(setNavBarItemGap(2));
+      dispatch(setNavBarIconSize(32));
+    }
+  }, [t, dispatch]);
 
   const handleDelete = useCallback((id: string) => {
     setItems(items.filter((item) => item.id !== id));
@@ -135,7 +115,6 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
     setEditingLabelId(null);
   }, [updateItem]);
 
-  /** 根据 URL 解析出用于比对的 host（小写、去掉 www.） */
   const getNormalizedHost = useCallback((url: string): string | null => {
     try {
       const u = new URL(url);
@@ -147,7 +126,6 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
     }
   }, []);
 
-  /** 根据 URL 在默认列表中查找内置站点，找到则返回其 icon */
   const findBuiltInIconByUrl = useCallback(
     (url: string): NavItem['icon'] | undefined => {
       const host = getNormalizedHost(url);
@@ -207,41 +185,125 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
     });
   }, []);
 
-  const handleReset = useCallback(() => {
-    if (confirm(t('settings_navBarResetConfigConfirm') || '确定要重置导航栏配置吗？此操作将恢复主题色、间距、图标大小等配置为默认值。')) {
-      // 重置配置项到默认值
-      dispatch(setNavBarThemeColor('#667eea'));
-      dispatch(setNavBarItemGap(2));
-      dispatch(setNavBarIconSize(32));
-    }
-  }, [t, dispatch]);
-
-  const handleResetList = useCallback(() => {
-    if (confirm(t('settings_navBarResetListConfirm') || '确定要重置网站列表吗？此操作将恢复为默认网站，自定义的网站将被清除。')) {
-      setItems(defaultNavItems);
-      setEditingLabelId(null);
-      setEditingUrlId(null);
-    }
-  }, [t]);
-
-  // 三级页面：网站列表管理
-  if (showListPage) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t('settings_navBarConfig') || '导航栏配置'}</h2>
+        <div className={styles.actions}>
           <button
             type="button"
-            className={styles.backButton}
-            onClick={() => setShowListPage(false)}
-            aria-label={t('settings_back') || '返回'}
+            className={styles.resetButton}
+            onClick={handleReset}
+            aria-label={t('settings_reset') || '重置'}
           >
-            <ArrowLeft width={20} height={20} />
+            {t('settings_reset') || '重置'}
           </button>
+        </div>
+      </div>
+
+      {/* 基础设置分组 */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>{t('settings_basicSettings') || '基础设置'}</h3>
+        <div className={styles.visibleRow}>
+          <div className={styles.visibleText}>
+            <div className={styles.visibleTitle}>
+              {t('settings_navBarVisible') || '显示底部导航栏'}
+            </div>
+            <div className={styles.visibleDesc}>
+              {t('settings_navBarVisibleDesc') || '在新标签页底部显示/隐藏导航栏'}
+            </div>
+          </div>
+          <Switch
+            checked={showNavBar}
+            onChange={handleToggleVisible}
+            ariaLabel={t('settings_navBarVisible') || '显示底部导航栏'}
+          />
+        </div>
+      </div>
+
+      {/* 外观设置分组 */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>{t('settings_appearanceSettings') || '外观设置'}</h3>
+        <div className={styles.visibleRow}>
+          <div className={styles.visibleText}>
+            <div className={styles.visibleTitle}>
+              {t('settings_navBarThemeColor') || '图标主题色'}
+            </div>
+            <div className={styles.visibleDesc}>
+              {t('settings_navBarThemeColorDesc') || '自定义底部导航栏图标的颜色'}
+            </div>
+          </div>
+          <input
+            type="color"
+            value={navBarThemeColor || '#667eea'}
+            onChange={handleThemeColorChange}
+            className={styles.colorPicker}
+            aria-label={t('settings_navBarThemeColor') || '图标主题色'}
+          />
+        </div>
+
+        <div className={styles.visibleRow}>
+          <div className={styles.visibleText}>
+            <div className={styles.visibleTitle}>
+              {t('settings_navBarItemGap') || '布局间距'}
+            </div>
+            <div className={styles.visibleDesc}>
+              {t('settings_navBarItemGapDesc') || '调整图标之间的间距大小'}
+            </div>
+          </div>
+          <div className={styles.sliderContainer}>
+            <input
+              type="range"
+              min="0"
+              max="20"
+              value={navBarItemGap || 2}
+              onChange={handleItemGapChange}
+              className={styles.slider}
+              aria-label={t('settings_navBarItemGap') || '布局间距'}
+            />
+            <span className={styles.sliderValue}>{navBarItemGap || 2}px</span>
+          </div>
+        </div>
+
+        <div className={styles.visibleRow}>
+          <div className={styles.visibleText}>
+            <div className={styles.visibleTitle}>
+              {t('settings_navBarIconSize') || '图标大小'}
+            </div>
+            <div className={styles.visibleDesc}>
+              {t('settings_navBarIconSizeDesc') || '调整图标的大小'}
+            </div>
+          </div>
+          <div className={styles.sliderContainer}>
+            <input
+              type="range"
+              min="16"
+              max="64"
+              value={navBarIconSize || 32}
+              onChange={handleIconSizeChange}
+              className={styles.slider}
+              aria-label={t('settings_navBarIconSize') || '图标大小'}
+            />
+            <span className={styles.sliderValue}>{navBarIconSize || 32}px</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 网站管理分组 */}
+      <div className={styles.section}>
+        <div className={styles.header}>
+          <h3 className={styles.sectionTitle}>{t('settings_websiteManagement') || '网站管理'}</h3>
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.resetButton}
-              onClick={handleResetList}
+              onClick={() => {
+                if (confirm(t('settings_navBarResetListConfirm') || '确定要重置网站列表吗？此操作将恢复为默认网站，自定义的网站将被清除。')) {
+                  setItems(defaultNavItems);
+                  setEditingLabelId(null);
+                  setEditingUrlId(null);
+                }
+              }}
               aria-label={t('settings_reset') || '重置'}
             >
               {t('settings_reset') || '重置'}
@@ -249,14 +311,22 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
             <button
               type="button"
               className={styles.addButton}
-              onClick={handleAdd}
+              onClick={() => {
+                setItems([
+                  ...items,
+                  {
+                    id: `item-${Date.now()}`,
+                    label: 'Untitled',
+                    url: 'https://',
+                  },
+                ]);
+              }}
               aria-label={t('settings_add') || '添加网站'}
             >
               + {t('settings_add') || '添加网站'}
             </button>
           </div>
         </div>
-
         <div className={styles.list}>
           {items.length === 0 ? (
             <div className={styles.empty}>
@@ -329,138 +399,6 @@ const NavBarConfigPage: React.FC<NavBarConfigPageProps> = () => {
               </div>
             ))
           )}
-        </div>
-      </div>
-    );
-  }
-
-  // 主配置页面
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{t('settings_navBarConfig') || '导航栏配置'}</h2>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.resetButton}
-            onClick={handleReset}
-            aria-label={t('settings_reset') || '重置'}
-          >
-            {t('settings_reset') || '重置'}
-          </button>
-        </div>
-      </div>
-
-      {/* 基础设置分组 */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>{t('settings_basicSettings') || '基础设置'}</h3>
-        <div className={styles.visibleRow}>
-          <div className={styles.visibleText}>
-            <div className={styles.visibleTitle}>
-              {t('settings_navBarVisible') || '显示底部导航栏'}
-            </div>
-            <div className={styles.visibleDesc}>
-              {t('settings_navBarVisibleDesc') || '在新标签页底部显示/隐藏导航栏'}
-            </div>
-          </div>
-          <Switch
-            checked={showNavBar}
-            onChange={handleToggleVisible}
-            ariaLabel={t('settings_navBarVisible') || '显示底部导航栏'}
-          />
-        </div>
-      </div>
-
-      {/* 外观设置分组 */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>{t('settings_appearanceSettings') || '外观设置'}</h3>
-        <div className={styles.visibleRow}>
-          <div className={styles.visibleText}>
-            <div className={styles.visibleTitle}>
-              {t('settings_navBarThemeColor') || '图标主题色'}
-            </div>
-            <div className={styles.visibleDesc}>
-              {t('settings_navBarThemeColorDesc') || '自定义底部导航栏图标的颜色'}
-            </div>
-          </div>
-          <input
-            type="color"
-            value={navBarThemeColor || '#667eea'}
-            onChange={handleThemeColorChange}
-            className={styles.colorPicker}
-            aria-label={t('settings_navBarThemeColor') || '图标主题色'}
-          />
-        </div>
-
-        <div className={styles.visibleRow}>
-          <div className={styles.visibleText}>
-            <div className={styles.visibleTitle}>
-              {t('settings_navBarItemGap') || '布局间距'}
-            </div>
-            <div className={styles.visibleDesc}>
-              {t('settings_navBarItemGapDesc') || '调整图标之间的间距大小（0-20px）'}
-            </div>
-          </div>
-          <div className={styles.sliderContainer}>
-            <input
-              type="range"
-              min="0"
-              max="20"
-              value={navBarItemGap || 2}
-              onChange={handleItemGapChange}
-              className={styles.slider}
-              aria-label={t('settings_navBarItemGap') || '布局间距'}
-            />
-            <span className={styles.sliderValue}>{navBarItemGap || 2}px</span>
-          </div>
-        </div>
-
-        <div className={styles.visibleRow}>
-          <div className={styles.visibleText}>
-            <div className={styles.visibleTitle}>
-              {t('settings_navBarIconSize') || '图标大小'}
-            </div>
-            <div className={styles.visibleDesc}>
-              {t('settings_navBarIconSizeDesc') || '调整图标的大小（16-64px）'}
-            </div>
-          </div>
-          <div className={styles.sliderContainer}>
-            <input
-              type="range"
-              min="16"
-              max="64"
-              value={navBarIconSize || 32}
-              onChange={handleIconSizeChange}
-              className={styles.slider}
-              aria-label={t('settings_navBarIconSize') || '图标大小'}
-            />
-            <span className={styles.sliderValue}>{navBarIconSize || 32}px</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 网站管理分组 */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>{t('settings_websiteManagement') || '网站管理'}</h3>
-        <div className={styles.manageSitesCard}>
-          <div className={styles.manageSitesContent}>
-            <div className={styles.manageSitesText}>
-              <div className={styles.manageSitesTitle}>
-                {t('settings_manageSites') || '管理网站列表'}
-              </div>
-              <div className={styles.manageSitesDesc}>
-                {t('settings_manageSitesDesc') || '添加、编辑、删除和排序您常用的网站'}
-              </div>
-            </div>
-            <button
-              type="button"
-              className={styles.manageSitesButton}
-              onClick={() => setShowListPage(true)}
-              aria-label={t('settings_manageSites') || '管理网站列表'}
-            >
-              {t('settings_manageSites') || '管理网站列表'}
-            </button>
-          </div>
         </div>
       </div>
     </div>

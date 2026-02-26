@@ -118,7 +118,7 @@
 
 .slidingWrapper {
   display: flex;
-  width: 200%;
+  width: 300%;
   height: 100%;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   /* 启用 GPU 加速 */
@@ -127,15 +127,21 @@
   -webkit-transform: translateZ(0);
 }
 
-.slideActive {
-  transform: translateX(-50%) translateZ(0);
-  -webkit-transform: translateX(-50%) translateZ(0);
+.slideLevel1 {
+  transform: translateX(-33.333%) translateZ(0);
+  -webkit-transform: translateX(-33.333%) translateZ(0);
+}
+
+.slideLevel2 {
+  transform: translateX(-66.666%) translateZ(0);
+  -webkit-transform: translateX(-66.666%) translateZ(0);
 }
 
 .pageContent {
-  width: 50%;
+  width: 33.333%;
   height: 100%;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 /* 当包含打开的 Select 时，允许溢出以避免裁剪下拉菜单 */
@@ -206,6 +212,12 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+.subHeaderTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .accountWrapper {
@@ -908,6 +920,203 @@
   }
 
   .settingDescription {
+    font-size: 12px;
+  }
+}
+
+/* 网站列表管理页面样式 */
+.dragHandle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--text-secondary);
+  cursor: grab;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.dragHandle:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 12px 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.2s ease;
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.itemBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.itemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemLabel,
+.itemUrl {
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: text;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.itemLabel {
+  font-weight: 600;
+}
+
+.itemUrl {
+  font-size: 13px;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.itemLabel:hover,
+.itemUrl:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.inlineInput {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-primary, #667eea);
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inlineInputLabel {
+  font-weight: 600;
+}
+
+.inlineInputUrl {
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.inlineInput:focus {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.itemRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.deleteButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* 暗色模式下的网站列表样式 */
+@media (prefers-color-scheme: dark) {
+  .dragHandle:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .itemLabel:hover,
+  .itemUrl:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .inlineInput {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary, #667eea);
+  }
+}
+
+/* 手机端网站列表样式 */
+@media screen and (max-width: 768px) {
+  .list {
+    padding-right: 2px;
+  }
+
+  .item {
+    padding: 10px 12px;
+  }
+
+  .itemBody {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .itemInfo {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .itemRight {
+    flex-shrink: 0;
+  }
+
+  .deleteButton {
+    padding: 4px 10px;
     font-size: 12px;
   }
 }

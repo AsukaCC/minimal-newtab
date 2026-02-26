@@ -15,6 +15,7 @@ import { logout as logoutService, isLoggedIn as checkIsLoggedIn, getAccessToken,
 import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserName, setUserAvatar } from '../../store';
 import { resetConfig } from '../../store';
 import { SettingsIcon } from '../../common/svgIcon';
+import type { PageComponent } from './types';
 
 interface ConfigInfoProps {
   isOpen: boolean;
@@ -28,15 +29,59 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();
   const themeColor = useAppSelector((state) => state.config.themeColor);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [activeSubPage, setActiveSubPage] = useState<string | null>(null);
-  /** 正在执行“返回”的平移动画，动画结束后再清空 activeSubPage，这样回退时也有书本式平移 */
+  // 页面栈：动态存储所有页面组件
+  const [pages, setPages] = useState<PageComponent[]>([]);
+  const pagesRef = useRef<PageComponent[]>([]);
   const [isSlidingBack, setIsSlidingBack] = useState(false);
+
+  // 保持 pagesRef 同步
+  useEffect(() => {
+    pagesRef.current = pages;
+  }, [pages]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const userEmail = useAppSelector((state) => state.userInfo.userEmail);
   const userName = useAppSelector((state) => state.userInfo.userName);
   const userAvatar = useAppSelector((state) => state.userInfo.userAvatar);
   const isLoggedIn = useAppSelector((state) => state.userInfo.isLoggedIn);
+
+  // 初始化主页
+  useEffect(() => {
+    if (!isOpen || pages.length > 0) return;
+
+    // 直接初始化主页
+    const homePage: PageComponent = {
+      id: 'home',
+      showHeader: false,
+      component: (
+        <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
+          <div className={styles.settingsHeader}>
+            <ConfigInfoHeader
+              isLoggedIn={isLoggedIn}
+              userEmail={userEmail}
+              userName={userName}
+              userAvatar={userAvatar}
+              isLoggingOut={isLoggingOut}
+              isLoggingIn={isLoggingIn}
+              onLogout={handleLogout}
+              onLogin={handleLogin}
+              onClose={onClose}
+              t={t}
+            />
+          </div>
+          <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
+            <SyncHistorySetting onOpenHistory={() => pushPage('syncHistory')} />
+            <ThemeColorSetting />
+            <LanguageSetting onSelectOpenChange={setIsSelectOpen} />
+            <LinkOpenModeSetting />
+            <NavBarSetting onOpenConfig={() => pushPage('navBarConfig')} />
+          </div>
+        </div>
+      ),
+    };
+
+    setPages([homePage]);
+  }, [isOpen]);
 
   // 处理点击外部区域关闭
   useEffect(() => {
@@ -51,7 +96,6 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     };
 
     if (isOpen) {
-      // 使用 setTimeout 确保点击事件先处理完
       setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
       }, 0);
@@ -62,12 +106,12 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
-  // 处理 ESC 键关闭（有子页时走 handleBack，带平移动画）
+  // 处理 ESC 键关闭
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
-        if (activeSubPage) {
-          handleBackRef.current();
+        if (pages.length > 1) {
+          handleBack();
         } else {
           onClose();
         }
@@ -78,17 +122,16 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose, activeSubPage]);
+  }, [isOpen, onClose, pages]);
 
-  // 重置子页面状态
+  // 重置页面栈状态
   useEffect(() => {
     if (!isOpen) {
-      setActiveSubPage(null);
+      setPages([]);
       setIsSelectOpen(false);
       setIsSlidingBack(false);
     }
   }, [isOpen]);
-
 
   // 应用主题色到 CSS 变量
   useEffect(() => {
@@ -238,33 +281,96 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     });
   }, [isLoggingOut, checkGoogleLoginStatus, t, dispatch]);
 
-  const handleBackRef = useRef<() => void>(() => { });
-  const handleBack = () => {
-    if (isSlidingBack) return;
+  // 返回上一页
+  const handleBack = useCallback(() => {
+    if (isSlidingBack || pagesRef.current.length <= 1) return;
     setIsSlidingBack(true);
-  };
-  handleBackRef.current = handleBack;
+  }, [isSlidingBack]);
 
-  // 返回动画结束后再清空子页，这样回退时能看到书本式平移
+  // 推送新页面到栈中
+  const pushPage = useCallback((pageId: string) => {
+    if (isSlidingBack) return;
+
+    let newPage: PageComponent;
+
+    switch (pageId) {
+      case 'syncHistory':
+        newPage = {
+          id: 'syncHistory',
+          title: t('settings_syncHistory') || '同步历史',
+          showHeader: true,
+          showBack: true,
+          component: (
+            <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
+              <div className={styles.settingsHeader}>
+                <ConfigInfoSubHeader onBack={handleBack} t={t} title={t('settings_syncHistory') || '同步历史'} />
+              </div>
+              <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
+                <SyncHistoryModal isOpen={true} onClose={handleBack} isSubPage={true} />
+              </div>
+            </div>
+          ),
+        };
+        break;
+
+      case 'navBarConfig':
+        newPage = {
+          id: 'navBarConfig',
+          title: t('settings_navBarConfig') || '导航栏配置',
+          showHeader: true,
+          showBack: true,
+          component: (
+            <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
+              <div className={styles.settingsHeader}>
+                <ConfigInfoSubHeader onBack={handleBack} t={t} title={t('settings_navBarConfig') || '导航栏配置'} />
+              </div>
+              <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
+                <NavBarConfigPage />
+              </div>
+            </div>
+          ),
+        };
+        break;
+
+      default:
+        return;
+    }
+
+    setPages(prev => [...prev, newPage]);
+  }, [isSlidingBack, handleBack, t, isSelectOpen]);
+
+  // 返回动画处理
   useEffect(() => {
     if (!isSlidingBack) return;
     const el = slidingWrapperRef.current;
     if (!el) {
       setIsSlidingBack(false);
-      setActiveSubPage(null);
+      setPages(prev => prev.slice(0, -1));
       setIsSelectOpen(false);
       return;
     }
+
+    // 先更新页面栈，触发 CSS transform 变化产生动画
+    setPages(prev => prev.slice(0, -1));
+    setIsSelectOpen(false);
+
     const onTransitionEnd = (e: TransitionEvent) => {
       if (e.target !== el || e.propertyName !== 'transform') return;
       el.removeEventListener('transitionend', onTransitionEnd);
       setIsSlidingBack(false);
-      setActiveSubPage(null);
-      setIsSelectOpen(false);
     };
     el.addEventListener('transitionend', onTransitionEnd);
     return () => el.removeEventListener('transitionend', onTransitionEnd);
   }, [isSlidingBack]);
+
+  // 计算滑动容器的 className
+  const getSlidingWrapperClassName = () => {
+    if (isSlidingBack) return styles.slidingWrapper;
+    // 根据页面栈长度计算偏移量
+    if (pages.length === 2) return `${styles.slidingWrapper} ${styles.slideLevel1}`;
+    if (pages.length === 3) return `${styles.slidingWrapper} ${styles.slideLevel2}`;
+    return styles.slidingWrapper;
+  };
 
   return (
     <>
@@ -278,54 +384,13 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
 
         <div
           ref={slidingWrapperRef}
-          className={`${styles.slidingWrapper} ${activeSubPage && !isSlidingBack ? styles.slideActive : ''}`}>
-          {/* 主页面 */}
-          <div className={styles.pageContent}>
-            <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
-              {/* Google 账户与关闭按钮通过 flex 布局并列 */}
-              <div className={styles.settingsHeader}>
-                <ConfigInfoHeader
-                  isLoggedIn={isLoggedIn}
-                  userEmail={userEmail}
-                  userName={userName}
-                  userAvatar={userAvatar}
-                  isLoggingOut={isLoggingOut}
-                  isLoggingIn={isLoggingIn}
-                  onLogout={handleLogout}
-                  onLogin={handleLogin}
-                  onClose={onClose}
-                  t={t}
-                />
-              </div>
-
-              {/* 设置项列表区域 */}
-              <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
-                <SyncHistorySetting onOpenHistory={() => setActiveSubPage('syncHistory')} />
-                <ThemeColorSetting />
-                <LanguageSetting onSelectOpenChange={setIsSelectOpen} />
-                <LinkOpenModeSetting />
-                <NavBarSetting onOpenConfig={() => setActiveSubPage('navBarConfig')} />
-              </div>
+          className={getSlidingWrapperClassName()}>
+          {/* 渲染页面栈中的所有页面 */}
+          {pages.map((page, index) => (
+            <div key={`${page.id}-${index}`} className={styles.pageContent}>
+              {page.component}
             </div>
-          </div>
-
-          {/* 子页面 */}
-          <div className={styles.pageContent}>
-            <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
-              <div className={styles.settingsHeader}>
-                <ConfigInfoSubHeader onBack={handleBack} t={t} />
-              </div>
-
-              <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
-                {activeSubPage === 'syncHistory' && (
-                  <SyncHistoryModal isOpen={true} onClose={handleBack} isSubPage={true} />
-                )}
-                {activeSubPage === 'navBarConfig' && (
-                  <NavBarConfigPage onClose={handleBack} />
-                )}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </>

@@ -4,6 +4,7 @@
 :root {
   /* 主色调 - 亮色主题 */
   --color-primary: #667eea;
+  --color-primary-hover: #5568d3;
   --color-primary-dark: #764ba2;
 
   /* 背景色 - 亮色主题 */
@@ -48,10 +49,17 @@
   --theme-color: #667eea;
   --button-primary-bg: var(--theme-color);
   --button-primary-text: #ffffff;
-  --button-primary-hover-bg: var(--color-primary-dark);
+  --button-primary-hover-bg: var(--color-primary-hover);
   --button-primary-hover-text: #ffffff;
   --button-shadow: rgba(102, 126, 234, 0.3);
   --button-hover-shadow: rgba(102, 126, 234, 0.4);
+
+  /* 次要按钮样式（返回、重置等） */
+  --button-secondary-bg: var(--glass-bg);
+  --button-secondary-text: var(--text-primary);
+  --button-secondary-border: var(--border-color);
+  --button-secondary-hover-bg: var(--glass-bg-strong);
+  --button-secondary-hover-border: var(--border-color-dark);
 
   /* 状态颜色 */
   --color-success: #4caf50;
@@ -79,6 +87,7 @@
 [data-theme='dark'] {
   /* 主色调 - 暗色主题 */
   --color-primary: #8b9eff;
+  --color-primary-hover: #7a8cff;
   --color-primary-dark: #4a5568;
 
   /* 背景色 - 暗色主题 */
@@ -123,10 +132,17 @@
   --theme-color: #8b9eff;
   --button-primary-bg: var(--theme-color);
   --button-primary-text: #ffffff;
-  --button-primary-hover-bg: var(--color-primary-dark);
+  --button-primary-hover-bg: var(--color-primary-hover);
   --button-primary-hover-text: #ffffff;
   --button-shadow: rgba(139, 158, 255, 0.3);
   --button-hover-shadow: rgba(139, 158, 255, 0.4);
+
+  /* 次要按钮样式（返回、重置等） */
+  --button-secondary-bg: var(--glass-bg);
+  --button-secondary-text: var(--text-primary);
+  --button-secondary-border: var(--border-color);
+  --button-secondary-hover-bg: var(--glass-bg-strong);
+  --button-secondary-hover-border: var(--border-color-dark);
 
   /* 圆角 */
   --radius-sm: 4px;
