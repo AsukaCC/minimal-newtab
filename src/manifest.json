@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
+  "key": "",
   "version": "1.0.9",
   "description": "__MSG_extensionDescription__",
   "default_locale": "zh_CN",
@@ -32,7 +33,7 @@
     "https://suggestion.baidu.com/*"
   ],
   "oauth2": {
-    "_comment_client_id": "Google OAuth2 客户端 ID，用于身份验证和 Google Drive API 访问。需要在 Google Cloud Console 创建 OAuth2 客户端凭据，并配置授权重定向 URI 为 chrome-extension://[扩展ID] / Google OAuth2 Client ID for authentication and Google Drive API access. Create OAuth2 client credentials in Google Cloud Console and configure the authorized redirect URI as chrome-extension://[extension-id]",
+    "_comment_client_id": "Google OAuth2 客户端 ID",
     "client_id": "",
     "scopes": [
       "openid",

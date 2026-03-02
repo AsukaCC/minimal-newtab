@@ -3,7 +3,13 @@
  * 提供配置的同步、历史记录管理、导入导出功能
  */
 
-import { ConfigState, generateConfigId, loadConfig, setHistories, clearHistories } from '../store';
+import {
+  ConfigState,
+  generateConfigId,
+  loadConfig,
+  setHistories,
+  clearHistories,
+} from '../store';
 import { store } from '../store';
 import dayjs from 'dayjs';
 
@@ -72,7 +78,10 @@ let requiresForceReauth = false;
 let isHandlingPermissionError = false;
 
 // 防止重复下载同一文件的标志（用于防止无限循环）
-const downloadCache: Map<string, { timestamp: number; promise: Promise<string> }> = new Map();
+const downloadCache: Map<
+  string,
+  { timestamp: number; promise: Promise<string> }
+> = new Map();
 const DOWNLOAD_CACHE_DURATION = 2000; // 2秒内不重复下载同一文件
 
 /**
@@ -93,7 +102,10 @@ function clearLoginStatusCache(): void {
 /**
  * 检查是否是权限不足错误
  */
-function isInsufficientPermissionError(error: any, statusCode?: number): boolean {
+function isInsufficientPermissionError(
+  error: any,
+  statusCode?: number,
+): boolean {
   if (statusCode === 403 || statusCode === 401) {
     return true;
   }
@@ -116,7 +128,11 @@ function isInsufficientPermissionError(error: any, statusCode?: number): boolean
 /**
  * 处理权限不足错误：清除 token 缓存并抛出错误
  */
-function handleInsufficientPermissionError(token: string, error: any, statusCode?: number): never {
+function handleInsufficientPermissionError(
+  token: string,
+  error: any,
+  statusCode?: number,
+): never {
   // 防止无限循环：如果已经在处理权限错误，直接抛出错误
   if (isHandlingPermissionError) {
     const authError: any = new Error('权限不足，请重新登录以获取完整权限');
@@ -132,8 +148,10 @@ function handleInsufficientPermissionError(token: string, error: any, statusCode
 
   // 清除 token 缓存
   chrome.identity.removeCachedAuthToken({ token }, () => {
-    clearLoginStatusCache(); // 清除登录状态缓存
-    // 重置处理标志，允许下次重新授权
+    if (chrome.runtime.lastError) {
+      // OAuth2 not granted or revoked 等，忽略
+    }
+    clearLoginStatusCache();
     setTimeout(() => {
       isHandlingPermissionError = false;
     }, 1000);
@@ -153,7 +171,9 @@ function handleInsufficientPermissionError(token: string, error: any, statusCode
  * 如果用户之前已经授权过，Chrome 会返回缓存的 token（可能不包含所有 scopes）
  * 因此，如果遇到权限不足错误，必须先清除旧 token，然后重新授权
  */
-export async function getAccessToken(forceReauth: boolean = false): Promise<string> {
+export async function getAccessToken(
+  forceReauth: boolean = false,
+): Promise<string> {
   // 如果之前遇到权限不足错误，或者明确要求强制重新授权，则清除旧 token
   const shouldForceReauth = forceReauth || requiresForceReauth;
 
@@ -168,22 +188,25 @@ export async function getAccessToken(forceReauth: boolean = false): Promise<stri
           interactive: false,
         },
         (oldToken) => {
+          // 必须检查 lastError，否则会触发 "Unchecked runtime.lastError"
+          if (chrome.runtime.lastError) {
+            // 用户已撤销授权等，无缓存 token，直接请求新 token
+            requestNewToken(resolve, reject);
+            return;
+          }
           if (oldToken) {
             // 清除旧 token，强制重新授权
-            // 注意：必须清除旧 token，否则 Chrome 会返回缓存的 token（可能不包含所有 scopes）
             chrome.identity.removeCachedAuthToken({ token: oldToken }, () => {
+              if (chrome.runtime.lastError) {
+                // OAuth2 not granted or revoked：token 已失效，忽略
+              }
               clearLoginStatusCache();
-              // 等待一下，确保 token 已清除
-              setTimeout(() => {
-                // 清除后重新获取（会使用 manifest.json 中的 scopes）
-                requestNewToken(resolve, reject);
-              }, 100);
+              setTimeout(() => requestNewToken(resolve, reject), 100);
             });
           } else {
-            // 没有旧 token，直接获取新 token（会使用 manifest.json 中的 scopes）
             requestNewToken(resolve, reject);
           }
-        }
+        },
       );
     } else {
       // 正常流程：直接获取 token（Chrome 会使用 manifest.json 中的 scopes）
@@ -200,10 +223,15 @@ export async function getAccessToken(forceReauth: boolean = false): Promise<stri
  * 如果用户之前已经授权过，Chrome 会返回缓存的 token（可能不包含所有 scopes）
  * 因此，如果需要更新 scopes，必须先清除旧 token（通过 removeCachedAuthToken）
  */
-function requestNewToken(resolve: (token: string) => void, reject: (error: Error) => void): void {
+function requestNewToken(
+  resolve: (token: string) => void,
+  reject: (error: Error) => void,
+): void {
   // Chrome 扩展中，scopes 参数不会生效，实际 scopes 来自 manifest.json
   // 不传递 scopes 参数，让 Chrome 使用 manifest.json 中的配置
-  console.log('[syncService] 请求新 token，将使用 manifest.json 中的 scopes 配置');
+  console.log(
+    '[syncService] 请求新 token，将使用 manifest.json 中的 scopes 配置',
+  );
 
   chrome.identity.getAuthToken(
     {
@@ -215,8 +243,8 @@ function requestNewToken(resolve: (token: string) => void, reject: (error: Error
     },
     (token) => {
       if (chrome.runtime.lastError) {
-        const errorMessage = chrome.runtime.lastError.message || '获取访问令牌失败';
-        console.error('[syncService] 获取 token 失败:', errorMessage);
+        const errorMessage =
+          chrome.runtime.lastError.message || '获取访问令牌失败';
 
         // 检查是否是用户取消登录的情况
         // Chrome 返回的错误消息包括：
@@ -227,14 +255,19 @@ function requestNewToken(resolve: (token: string) => void, reject: (error: Error
           errorMessage.includes('user did not approve') ||
           errorMessage.includes('user cancelled') ||
           errorMessage.includes('did not approve access') ||
-          (errorMessage.includes('OAuth2') && errorMessage.includes('invalid_grant')) ||
-          (errorMessage.includes('OAuth2') && errorMessage.includes('access_denied'));
+          errorMessage.includes('Authorization page could not be loaded') ||
+          errorMessage.includes('OAuth2 not granted or revoked') ||
+          (errorMessage.includes('OAuth2') &&
+            errorMessage.includes('invalid_grant')) ||
+          (errorMessage.includes('OAuth2') &&
+            errorMessage.includes('access_denied'));
 
         if (isUserCancelled) {
           // 用户取消登录，清除登录状态缓存，避免重复弹出
           clearLoginStatusCache();
           reject(new Error('用户取消了登录'));
         } else {
+          console.error('[syncService] 获取 token 失败:', errorMessage);
           reject(new Error(errorMessage));
         }
       } else if (!token) {
@@ -244,8 +277,115 @@ function requestNewToken(resolve: (token: string) => void, reject: (error: Error
         console.log('[syncService] 成功获取 token（长度:', token.length, '）');
         resolve(token);
       }
-    }
+    },
   );
+}
+
+/**
+ * 生成随机 state 参数，用于 OAuth 2.0 CSRF 防护
+ * 参考：https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow?hl=zh-cn
+ */
+function generateOAuthState(): string {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * 通过 launchWebAuthFlow 获取 token，展示完整 Google OAuth 页面
+ * 遵循 Google OAuth 2.0 隐式流程，支持：切换账号、取消返回
+ * 参考：https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow?hl=zh-cn
+ *
+ * 需在 Google Cloud Console 添加重定向 URI（与 getRedirectURL() 返回值完全一致，含尾部斜杠）：
+ * https://[扩展ID].chromiumapp.org/
+ */
+export async function getAccessTokenViaWebAuthFlow(): Promise<string> {
+  const manifest = chrome.runtime.getManifest();
+  const oauth2 = (manifest as any).oauth2;
+  if (!oauth2?.client_id || !Array.isArray(oauth2.scopes)) {
+    throw new Error('manifest oauth2 配置不完整');
+  }
+
+  const redirectUri = chrome.identity.getRedirectURL();
+  const state = generateOAuthState();
+  const scope = oauth2.scopes.join(' ');
+
+  const params = new URLSearchParams({
+    client_id: oauth2.client_id,
+    redirect_uri: redirectUri,
+    response_type: 'token',
+    scope,
+    state,
+    include_granted_scopes: 'true',
+    prompt: 'select_account',
+  });
+
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+  return new Promise((resolve, reject) => {
+    chrome.identity.launchWebAuthFlow(
+      { url: authUrl, interactive: true },
+      (responseUrl) => {
+        if (chrome.runtime.lastError) {
+          const msg = chrome.runtime.lastError.message || '';
+          const isPageClosed =
+            msg.includes('Authorization page could not be loaded') ||
+            msg.includes('redirect') ||
+            msg.includes('cancel');
+          const hint = `若遇 redirect_uri_mismatch，请在 Google Cloud Console 添加：${redirectUri}`;
+          reject(
+            new Error(isPageClosed ? `用户取消了登录。${hint}` : `${msg}。${hint}`),
+          );
+          return;
+        }
+        if (!responseUrl) {
+          reject(new Error('用户取消了登录'));
+          return;
+        }
+        try {
+          const url = new URL(responseUrl);
+          const hash = url.hash?.slice(1);
+          const hashParams = hash ? new URLSearchParams(hash) : null;
+
+          const error = hashParams?.get('error') || url.searchParams.get('error');
+          if (error) {
+            const desc = hashParams?.get('error_description') || url.searchParams.get('error_description');
+            if (error === 'redirect_uri_mismatch') {
+              console.error('[syncService] redirect_uri_mismatch，请在 Google Cloud Console 添加：', redirectUri);
+              reject(new Error(`redirect_uri_mismatch：请在 Google Cloud Console 添加重定向 URI：\n${redirectUri}`));
+            } else if (error === 'access_denied') {
+              reject(new Error('用户取消了登录'));
+            } else {
+              reject(new Error(desc || error));
+            }
+            return;
+          }
+
+          const returnedState = hashParams?.get('state');
+          if (returnedState !== state) {
+            reject(new Error('state 校验失败，请重试'));
+            return;
+          }
+
+          const token = hashParams?.get('access_token');
+          if (!token) {
+            reject(new Error('未获取到 token'));
+            return;
+          }
+          resolve(token);
+        } catch {
+          reject(new Error('解析授权响应失败'));
+        }
+      },
+    );
+  });
+}
+
+/**
+ * 获取 launchWebAuthFlow 所需的 redirect_uri，用于在 Google Console 中配置
+ */
+export function getWebAuthRedirectUri(): string {
+  return chrome.identity.getRedirectURL();
 }
 
 /**
@@ -264,7 +404,10 @@ export async function isLoggedIn(): Promise<boolean> {
   ) {
     return true;
   }
-  if (tokenValidityCache.expiresAt && now >= tokenValidityCache.expiresAt - TOKEN_EXPIRY_BUFFER_MS) {
+  if (
+    tokenValidityCache.expiresAt &&
+    now >= tokenValidityCache.expiresAt - TOKEN_EXPIRY_BUFFER_MS
+  ) {
     tokenValidityCache = {
       token: null,
       expiresAt: null,
@@ -312,13 +455,16 @@ export async function isLoggedIn(): Promise<boolean> {
                 headers: {
                   'Content-Type': 'application/json',
                 },
-              }
+              },
             );
 
             if (!response.ok) {
               // Token 无效（可能已过期或被撤销），清除缓存的 token
               chrome.identity.removeCachedAuthToken({ token }, () => {
-                clearLoginStatusCache(); // 清除登录状态缓存
+                if (chrome.runtime.lastError) {
+                  /* OAuth2 not granted or revoked 等 */
+                }
+                clearLoginStatusCache();
                 resolve(false);
               });
               return;
@@ -329,7 +475,10 @@ export async function isLoggedIn(): Promise<boolean> {
             // 检查 token 信息是否有效
             if (tokenInfo.error) {
               chrome.identity.removeCachedAuthToken({ token }, () => {
-                clearLoginStatusCache(); // 清除登录状态缓存
+                if (chrome.runtime.lastError) {
+                  /* OAuth2 not granted or revoked 等 */
+                }
+                clearLoginStatusCache();
                 resolve(false);
               });
               return;
@@ -338,7 +487,10 @@ export async function isLoggedIn(): Promise<boolean> {
             // 验证必要的字段是否存在
             if (!tokenInfo.user_id && !tokenInfo.email) {
               chrome.identity.removeCachedAuthToken({ token }, () => {
-                clearLoginStatusCache(); // 清除登录状态缓存
+                if (chrome.runtime.lastError) {
+                  /* OAuth2 not granted or revoked 等 */
+                }
+                clearLoginStatusCache();
                 resolve(false);
               });
               return;
@@ -367,7 +519,7 @@ export async function isLoggedIn(): Promise<boolean> {
             // 也不更新缓存，让下次重试
             resolve(false);
           }
-        }
+        },
       );
     } catch (error: any) {
       console.error('[syncService] 调用 getAuthToken 时出错:', error);
@@ -380,7 +532,11 @@ export async function isLoggedIn(): Promise<boolean> {
  * 获取用户信息（邮箱、用户名、头像）
  * 返回登录用户的信息，如果未登录或获取失败则返回 null
  */
-export async function getUserInfo(): Promise<{ email: string; name?: string | null; avatarUrl?: string | null } | null> {
+export async function getUserInfo(): Promise<{
+  email: string;
+  name?: string | null;
+  avatarUrl?: string | null;
+} | null> {
   try {
     const token = await getAccessToken();
     if (!token) {
@@ -388,13 +544,16 @@ export async function getUserInfo(): Promise<{ email: string; name?: string | nu
     }
 
     // 调用 Google OAuth2 userinfo API 获取用户信息（包含头像和用户名）
-    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       return null;
@@ -430,7 +589,7 @@ async function revokeToken(token: string): Promise<void> {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      }
+      },
     );
     // 静默处理撤销结果，网络错误不影响登出流程
   } catch (error: any) {
@@ -453,11 +612,14 @@ export async function logout(): Promise<void> {
         (token) => {
           // 清除本地存储的函数
           const clearStorage = () => {
-            chrome.storage.local.remove([DRIVE_CONFIG_FILE_ID_KEY, DRIVE_HISTORY_FILE_ID_KEY], () => {
-              // 清除登录状态缓存
-              clearLoginStatusCache();
-              resolve();
-            });
+            chrome.storage.local.remove(
+              [DRIVE_CONFIG_FILE_ID_KEY, DRIVE_HISTORY_FILE_ID_KEY],
+              () => {
+                // 清除登录状态缓存
+                clearLoginStatusCache();
+                resolve();
+              },
+            );
           };
 
           // 移除 Chrome token 缓存的函数
@@ -466,10 +628,14 @@ export async function logout(): Promise<void> {
               chrome.identity.removeCachedAuthToken({ token }, () => {
                 // 忽略 removeCachedAuthToken 的错误（OAuth2 not granted or revoked 是正常情况）
                 if (chrome.runtime.lastError) {
-                  const errorMsg = chrome.runtime.lastError.message || '移除 token 失败';
+                  const errorMsg =
+                    chrome.runtime.lastError.message || '移除 token 失败';
                   // 只在不是 "OAuth2 not granted or revoked" 时打印日志
                   if (!errorMsg.includes('OAuth2 not granted or revoked')) {
-                    console.log('[syncService] 移除 Chrome token 缓存时的提示:', errorMsg);
+                    console.log(
+                      '[syncService] 移除 Chrome token 缓存时的提示:',
+                      errorMsg,
+                    );
                   }
                 }
                 clearStorage();
@@ -495,15 +661,18 @@ export async function logout(): Promise<void> {
             // 如果没有 token，直接清除本地存储
             clearStorage();
           }
-        }
+        },
       );
     } catch (error: any) {
       console.error('[syncService] 登出时出错:', error);
       // 即使出错，也尝试清除本地存储和登录状态缓存
       clearLoginStatusCache();
-      chrome.storage.local.remove([DRIVE_CONFIG_FILE_ID_KEY, DRIVE_HISTORY_FILE_ID_KEY], () => {
-        reject(new Error(error.message || '登出失败'));
-      });
+      chrome.storage.local.remove(
+        [DRIVE_CONFIG_FILE_ID_KEY, DRIVE_HISTORY_FILE_ID_KEY],
+        () => {
+          reject(new Error(error.message || '登出失败'));
+        },
+      );
     }
   });
 }
@@ -513,26 +682,35 @@ export async function logout(): Promise<void> {
 /**
  * 调用 Google Drive API
  */
-async function callDriveAPI(endpoint: string, options: RequestInit = {}): Promise<any> {
+async function callDriveAPI(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<any> {
   const token = await getAccessToken();
-  const response = await fetch(`https://www.googleapis.com/drive/v3${endpoint}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3${endpoint}`,
+    {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: '请求失败' } }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: { message: '请求失败' } }));
 
     // 检查是否是权限不足错误
     if (isInsufficientPermissionError(error, response.status)) {
       handleInsufficientPermissionError(token, error, response.status);
     }
 
-    const errorMessage = error.error?.message || `API 请求失败: ${response.status}`;
+    const errorMessage =
+      error.error?.message || `API 请求失败: ${response.status}`;
     throw new Error(errorMessage);
   }
 
@@ -542,7 +720,12 @@ async function callDriveAPI(endpoint: string, options: RequestInit = {}): Promis
 /**
  * 上传文件到 Google Drive AppData 文件夹（使用已获取的 token）
  */
-async function uploadFileToDriveWithToken(fileName: string, content: string, existingFileId: string | undefined, token: string): Promise<string> {
+async function uploadFileToDriveWithToken(
+  fileName: string,
+  content: string,
+  existingFileId: string | undefined,
+  token: string,
+): Promise<string> {
   // 如果存在文件 ID，则更新；否则创建新文件
   if (existingFileId) {
     // 更新现有文件 - 使用 resumable upload 或 simple upload
@@ -553,7 +736,7 @@ async function uploadFileToDriveWithToken(fileName: string, content: string, exi
     };
     formData.append(
       'metadata',
-      new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+      new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
     );
     formData.append('file', new Blob([content], { type: 'application/json' }));
 
@@ -565,11 +748,13 @@ async function uploadFileToDriveWithToken(fileName: string, content: string, exi
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      }
+      },
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: '更新文件失败' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: '更新文件失败' } }));
 
       // 检查是否是权限不足错误
       if (isInsufficientPermissionError(error, response.status)) {
@@ -591,7 +776,7 @@ async function uploadFileToDriveWithToken(fileName: string, content: string, exi
     };
     formData.append(
       'metadata',
-      new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+      new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
     );
     formData.append('file', new Blob([content], { type: 'application/json' }));
 
@@ -603,11 +788,13 @@ async function uploadFileToDriveWithToken(fileName: string, content: string, exi
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      }
+      },
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: '创建文件失败' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: '创建文件失败' } }));
 
       // 检查是否是权限不足错误
       if (isInsufficientPermissionError(error, response.status)) {
@@ -626,7 +813,11 @@ async function uploadFileToDriveWithToken(fileName: string, content: string, exi
 /**
  * 上传文件到 Google Drive AppData 文件夹
  */
-async function uploadFileToDrive(fileName: string, content: string, existingFileId?: string): Promise<string> {
+async function uploadFileToDrive(
+  fileName: string,
+  content: string,
+  existingFileId?: string,
+): Promise<string> {
   const token = await getAccessToken();
   return uploadFileToDriveWithToken(fileName, content, existingFileId, token);
 }
@@ -635,7 +826,10 @@ async function uploadFileToDrive(fileName: string, content: string, existingFile
  * 从 Google Drive 下载文件（使用已获取的 token）
  * 添加了防重复下载机制，避免无限循环
  */
-async function downloadFileFromDriveWithToken(fileId: string, token: string): Promise<string> {
+async function downloadFileFromDriveWithToken(
+  fileId: string,
+  token: string,
+): Promise<string> {
   // 检查缓存，防止短时间内重复下载同一文件
   const now = dayjs().valueOf();
   const cached = downloadCache.get(fileId);
@@ -646,37 +840,47 @@ async function downloadFileFromDriveWithToken(fileId: string, token: string): Pr
 
   // 创建新的下载请求
   const downloadPromise = (async () => {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: '下载文件失败' } }));
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: '下载文件失败' } }));
 
-    console.error('[syncService] 下载文件失败:', {
-      fileId,
-      status: response.status,
-      error: error.error || error,
-    });
+      console.error('[syncService] 下载文件失败:', {
+        fileId,
+        status: response.status,
+        error: error.error || error,
+      });
 
-    // 检查是否是权限不足错误
-    if (isInsufficientPermissionError(error, response.status)) {
-      console.error('[syncService] 检测到权限不足错误，fileId:', fileId, 'error:', error);
-      // 清除缓存
+      // 检查是否是权限不足错误
+      if (isInsufficientPermissionError(error, response.status)) {
+        console.error(
+          '[syncService] 检测到权限不足错误，fileId:',
+          fileId,
+          'error:',
+          error,
+        );
+        // 清除缓存
+        downloadCache.delete(fileId);
+        // 权限不足错误会直接抛出，不会继续执行
+        handleInsufficientPermissionError(token, error, response.status);
+        // 这行代码不会被执行，但保留以保持代码清晰
+        return '';
+      }
+
+      // 清除缓存，允许重试
       downloadCache.delete(fileId);
-      // 权限不足错误会直接抛出，不会继续执行
-      handleInsufficientPermissionError(token, error, response.status);
-      // 这行代码不会被执行，但保留以保持代码清晰
-      return '';
+      const errorMessage = error.error?.message || '下载文件失败';
+      throw new Error(errorMessage);
     }
-
-    // 清除缓存，允许重试
-    downloadCache.delete(fileId);
-    const errorMessage = error.error?.message || '下载文件失败';
-    throw new Error(errorMessage);
-  }
 
     const content = await response.text();
     // 下载成功后，清除缓存（允许下次重新下载）
@@ -701,7 +905,10 @@ async function downloadFileFromDrive(fileId: string): Promise<string> {
 /**
  * 查找 AppData 文件夹中的文件（使用已获取的 token）
  */
-async function findFileInDriveWithToken(fileName: string, token: string): Promise<string | null> {
+async function findFileInDriveWithToken(
+  fileName: string,
+  token: string,
+): Promise<string | null> {
   try {
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(fileName)}' and 'appDataFolder' in parents&spaces=appDataFolder&fields=files(id,name)`,
@@ -710,11 +917,13 @@ async function findFileInDriveWithToken(fileName: string, token: string): Promis
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: '查找文件失败' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: '查找文件失败' } }));
 
       // 检查是否是权限不足错误
       if (isInsufficientPermissionError(error, response.status)) {
@@ -749,7 +958,7 @@ async function findFileInDriveWithToken(fileName: string, token: string): Promis
 async function findFileInDrive(fileName: string): Promise<string | null> {
   try {
     const result = await callDriveAPI(
-      `/files?q=name='${encodeURIComponent(fileName)}' and 'appDataFolder' in parents&spaces=appDataFolder&fields=files(id,name)`
+      `/files?q=name='${encodeURIComponent(fileName)}' and 'appDataFolder' in parents&spaces=appDataFolder&fields=files(id,name)`,
     );
 
     if (result.files && result.files.length > 0) {
@@ -773,7 +982,11 @@ async function findFileInDrive(fileName: string): Promise<string | null> {
 /**
  * 获取或创建文件 ID（使用已获取的 token）
  */
-async function getOrCreateFileIdWithToken(fileName: string, storageKey: string, token: string): Promise<string | null> {
+async function getOrCreateFileIdWithToken(
+  fileName: string,
+  storageKey: string,
+  token: string,
+): Promise<string | null> {
   // 先从本地存储获取
   const localData = await new Promise<{ [key: string]: string }>((resolve) => {
     chrome.storage.local.get([storageKey], (result) => {
@@ -790,7 +1003,7 @@ async function getOrCreateFileIdWithToken(fileName: string, storageKey: string, 
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (response.ok) {
         return localData[storageKey];
@@ -829,7 +1042,10 @@ async function getOrCreateFileIdWithToken(fileName: string, storageKey: string, 
 /**
  * 获取或创建文件 ID
  */
-async function getOrCreateFileId(fileName: string, storageKey: string): Promise<string | null> {
+async function getOrCreateFileId(
+  fileName: string,
+  storageKey: string,
+): Promise<string | null> {
   // 先从本地存储获取
   const localData = await new Promise<{ [key: string]: string }>((resolve) => {
     chrome.storage.local.get([storageKey], (result) => {
@@ -847,7 +1063,7 @@ async function getOrCreateFileId(fileName: string, storageKey: string): Promise<
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (response.ok) {
         return localData[storageKey];
@@ -914,7 +1130,8 @@ export function getLocalConfig(): SyncConfigParsed | null {
       const parsed = Date.parse(configState.updatedAt);
       updatedAt = !isNaN(parsed) && parsed > 0 ? parsed : dayjs().valueOf();
     } else if (typeof configState.updatedAt === 'number') {
-      updatedAt = configState.updatedAt > 0 ? configState.updatedAt : dayjs().valueOf();
+      updatedAt =
+        configState.updatedAt > 0 ? configState.updatedAt : dayjs().valueOf();
     } else {
       updatedAt = dayjs().valueOf();
     }
@@ -988,7 +1205,9 @@ export async function uploadConfig(): Promise<boolean> {
     };
 
     // 更新本地配置的 configId
-    store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+    store.dispatch(
+      loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+    );
 
     // 等待配置更新完成
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1001,10 +1220,19 @@ export async function uploadConfig(): Promise<boolean> {
 
     // 获取或创建文件 ID（使用已获取的 token，避免重复验证）
     // 注意：这里传入 token，避免 getOrCreateFileId 内部再次调用 getAccessToken
-    const existingFileId = await getOrCreateFileIdWithToken(DRIVE_CONFIG_FILE_NAME, DRIVE_CONFIG_FILE_ID_KEY, token);
+    const existingFileId = await getOrCreateFileIdWithToken(
+      DRIVE_CONFIG_FILE_NAME,
+      DRIVE_CONFIG_FILE_ID_KEY,
+      token,
+    );
 
     // 上传到 Google Drive（使用已获取的 token，避免重复验证）
-    const fileId = await uploadFileToDriveWithToken(DRIVE_CONFIG_FILE_NAME, JSON.stringify(syncConfig), existingFileId || undefined, token);
+    const fileId = await uploadFileToDriveWithToken(
+      DRIVE_CONFIG_FILE_NAME,
+      JSON.stringify(syncConfig),
+      existingFileId || undefined,
+      token,
+    );
 
     // 保存文件 ID
     await saveFileId(fileId, DRIVE_CONFIG_FILE_ID_KEY);
@@ -1056,7 +1284,11 @@ export async function pullConfig(): Promise<boolean> {
     const token = await getAccessToken();
 
     // 获取文件 ID（使用已获取的 token）
-    const fileId = await getOrCreateFileIdWithToken(DRIVE_CONFIG_FILE_NAME, DRIVE_CONFIG_FILE_ID_KEY, token);
+    const fileId = await getOrCreateFileIdWithToken(
+      DRIVE_CONFIG_FILE_NAME,
+      DRIVE_CONFIG_FILE_ID_KEY,
+      token,
+    );
 
     if (!fileId) {
       return false;
@@ -1067,7 +1299,10 @@ export async function pullConfig(): Promise<boolean> {
     const syncData: SyncConfigStorage = JSON.parse(fileContent);
 
     if (!syncData.settings) {
-      console.error('[syncService] 无效的同步配置格式 - 缺少 settings:', syncData);
+      console.error(
+        '[syncService] 无效的同步配置格式 - 缺少 settings:',
+        syncData,
+      );
       return false;
     }
 
@@ -1112,19 +1347,27 @@ export async function pullConfig(): Promise<boolean> {
 /**
  * 比对两个配置对象的内容差异（忽略 updatedAt 和 configId）
  */
-function compareConfigContent(config1: ConfigState, config2: ConfigState): boolean {
+function compareConfigContent(
+  config1: ConfigState,
+  config2: ConfigState,
+): boolean {
   // 创建副本并移除 updatedAt 和 configId 进行比较
   const { updatedAt: _, configId: __, ...config1WithoutMeta } = config1;
   const { updatedAt: ___, configId: ____, ...config2WithoutMeta } = config2;
 
-  return JSON.stringify(config1WithoutMeta) === JSON.stringify(config2WithoutMeta);
+  return (
+    JSON.stringify(config1WithoutMeta) === JSON.stringify(config2WithoutMeta)
+  );
 }
 
 /**
  * 检测两个配置对象的字段差异（忽略 updatedAt 和 configId）
  * 返回有差异的字段列表
  */
-function detectConfigDifferences(config1: ConfigState, config2: ConfigState): string[] {
+function detectConfigDifferences(
+  config1: ConfigState,
+  config2: ConfigState,
+): string[] {
   const differences: string[] = [];
 
   // 需要比较的配置字段（排除 updatedAt 和 configId）
@@ -1161,7 +1404,10 @@ function detectConfigDifferences(config1: ConfigState, config2: ConfigState): st
  * 注意：如果用户未登录，getAccessToken() 会自动触发登录流程（弹出登录窗口）
  * 如果用户取消登录，会抛出错误，调用方需要处理
  */
-export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'none'; message: string }> {
+export async function syncConfig(): Promise<{
+  action: 'upload' | 'download' | 'none';
+  message: string;
+}> {
   try {
     // 先获取 token，确保用户已登录（如果未登录会弹出登录窗口）
     const token = await getAccessToken();
@@ -1180,7 +1426,10 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
     }
 
     // 检查云端是否存在配置
-    const cloudFileId = await findFileInDriveWithToken(DRIVE_CONFIG_FILE_NAME, token);
+    const cloudFileId = await findFileInDriveWithToken(
+      DRIVE_CONFIG_FILE_NAME,
+      token,
+    );
 
     // 如果云端不存在配置，直接上传本地配置
     if (!cloudFileId) {
@@ -1199,7 +1448,9 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+      store.dispatch(
+        loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      );
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1215,7 +1466,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
         DRIVE_CONFIG_FILE_NAME,
         JSON.stringify(syncConfig),
         undefined,
-        token
+        token,
       );
 
       // 保存文件 ID
@@ -1239,14 +1490,19 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
     console.log('[syncService] 云端存在配置，开始比对');
 
     // 下载云端配置（使用已获取的 token）
-    const cloudFileContent = await downloadFileFromDriveWithToken(cloudFileId, token);
+    const cloudFileContent = await downloadFileFromDriveWithToken(
+      cloudFileId,
+      token,
+    );
     const cloudSyncData: SyncConfigStorage = JSON.parse(cloudFileContent);
 
     if (!cloudSyncData.settings) {
       throw new Error('云端配置格式无效');
     }
 
-    const normalizedCloudUpdatedAt = normalizeUpdatedAt(cloudSyncData.updatedAt);
+    const normalizedCloudUpdatedAt = normalizeUpdatedAt(
+      cloudSyncData.updatedAt,
+    );
     const cloudConfig: SyncConfigParsed = {
       updatedAt: normalizedCloudUpdatedAt,
       settings: cloudSyncData.settings,
@@ -1258,7 +1514,10 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
     const timeDiff = localUpdatedAt - cloudUpdatedAt;
 
     // 比对配置内容（忽略 updatedAt 和 configId）
-    const isContentSame = compareConfigContent(localConfig.settings, cloudConfig.settings);
+    const isContentSame = compareConfigContent(
+      localConfig.settings,
+      cloudConfig.settings,
+    );
 
     console.log('[syncService] 配置比对结果:', {
       localUpdatedAt: dayjs(localUpdatedAt).toISOString(),
@@ -1291,7 +1550,9 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+      store.dispatch(
+        loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      );
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1307,7 +1568,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
         DRIVE_CONFIG_FILE_NAME,
         JSON.stringify(syncConfig),
         cloudFileId,
-        token
+        token,
       );
 
       // 保存文件 ID
@@ -1324,7 +1585,10 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
         await historyBatchManager.commit();
       }
 
-      return { action: 'upload', message: '已上传本地配置到云端（本地配置更新）' };
+      return {
+        action: 'upload',
+        message: '已上传本地配置到云端（本地配置更新）',
+      };
     } else if (timeDiff < 0) {
       // 云端更新，下载云端配置
       console.log('[syncService] 云端配置更新，下载到本地');
@@ -1340,7 +1604,10 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       // 提交更改：上传到云端
       await historyBatchManager.commit();
 
-      return { action: 'download', message: '已下载云端配置到本地（云端配置更新）' };
+      return {
+        action: 'download',
+        message: '已下载云端配置到本地（云端配置更新）',
+      };
     } else {
       // 时间相同但内容不同，使用本地配置（用户当前正在使用）
       console.log('[syncService] 时间相同但内容不同，使用本地配置');
@@ -1357,7 +1624,9 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
       };
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+      store.dispatch(
+        loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      );
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1373,7 +1642,7 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
         DRIVE_CONFIG_FILE_NAME,
         JSON.stringify(syncConfig),
         cloudFileId,
-        token
+        token,
       );
 
       // 保存文件 ID
@@ -1390,7 +1659,10 @@ export async function syncConfig(): Promise<{ action: 'upload' | 'download' | 'n
         await historyBatchManager.commit();
       }
 
-      return { action: 'upload', message: '已上传本地配置到云端（使用本地配置）' };
+      return {
+        action: 'upload',
+        message: '已上传本地配置到云端（使用本地配置）',
+      };
     }
   } catch (error: any) {
     // 如果是用户取消登录的错误，直接抛出，不要继续执行
@@ -1482,7 +1754,9 @@ export async function autoSyncConfig(): Promise<boolean> {
       const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
       // 更新本地配置的 configId
-      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+      store.dispatch(
+        loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      );
 
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1517,11 +1791,15 @@ export async function autoSyncConfig(): Promise<boolean> {
 
     // 如果历史记录第一条没有 configId，视为无效配置，重新创建
     if (!cloudConfigId) {
-      console.log('[syncService] 历史记录第一条没有 configId，视为无效配置，重新创建');
+      console.log(
+        '[syncService] 历史记录第一条没有 configId，视为无效配置，重新创建',
+      );
       // 创建新的配置ID
       const newConfigId = generateConfigId();
       const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
-      store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+      store.dispatch(
+        loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      );
       await new Promise((resolve) => setTimeout(resolve, 100));
       const updatedConfig = getLocalConfig();
       if (updatedConfig) {
@@ -1533,18 +1811,25 @@ export async function autoSyncConfig(): Promise<boolean> {
         });
         await historyBatchManager.commit();
       }
-      console.log('[syncService] 自动同步完成：已更新历史记录（添加 configId）');
+      console.log(
+        '[syncService] 自动同步完成：已更新历史记录（添加 configId）',
+      );
       historyBatchManager.reset();
       return true;
     }
 
     // 检测配置项的差异（忽略 updatedAt 和 configId）
-    const differences = detectConfigDifferences(localConfig.settings, cloudConfig.settings);
+    const differences = detectConfigDifferences(
+      localConfig.settings,
+      cloudConfig.settings,
+    );
     const isContentSame = differences.length === 0;
 
     // 如果 configId 匹配，说明本地配置就是历史记录中的最新配置
     if (localConfigId && cloudConfigId && localConfigId === cloudConfigId) {
-      console.log('[syncService] ConfigId 匹配，本地配置是历史记录中的最新配置');
+      console.log(
+        '[syncService] ConfigId 匹配，本地配置是历史记录中的最新配置',
+      );
 
       // 使用 dayjs 计算历史记录第一条的更新时间与当前时间的差值
       const now = dayjs();
@@ -1560,11 +1845,14 @@ export async function autoSyncConfig(): Promise<boolean> {
       // 记录差异信息（如果有）
       if (differences.length > 0) {
         console.log('[syncService] 检测到配置项差异:', differences);
-        console.log('[syncService] 差异详情:', differences.map(field => ({
-          field,
-          local: localConfig.settings[field as keyof ConfigState],
-          cloud: cloudConfig.settings[field as keyof ConfigState],
-        })));
+        console.log(
+          '[syncService] 差异详情:',
+          differences.map((field) => ({
+            field,
+            local: localConfig.settings[field as keyof ConfigState],
+            cloud: cloudConfig.settings[field as keyof ConfigState],
+          })),
+        );
       }
 
       // 判断是否需要更新历史记录（有差异或时间差大于1天）
@@ -1574,7 +1862,9 @@ export async function autoSyncConfig(): Promise<boolean> {
         // 如果只是时间差异大于1天（没有配置内容差异），需要先更新本地配置的 updatedAt
         if (differences.length === 0 && timeDiffDays > 1) {
           const currentTime = dayjs().valueOf();
-          const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
+          const currentTimeString = dayjs(currentTime).format(
+            'YYYY-MM-DD HH:mm:ss',
+          );
           // 更新本地配置的 updatedAt
           store.dispatch(loadConfig({ updatedAt: currentTimeString }));
           // 等待配置更新完成
@@ -1592,10 +1882,15 @@ export async function autoSyncConfig(): Promise<boolean> {
           await historyBatchManager.commit();
         }
 
-        const syncReason = differences.length > 0
-          ? `差异字段: ${differences.join(', ')}`
-          : `更新时间超过1天（${timeDiffDays.toFixed(2)}天）`;
-        console.log('[syncService] 自动同步完成：已更新历史记录（', syncReason, '）');
+        const syncReason =
+          differences.length > 0
+            ? `差异字段: ${differences.join(', ')}`
+            : `更新时间超过1天（${timeDiffDays.toFixed(2)}天）`;
+        console.log(
+          '[syncService] 自动同步完成：已更新历史记录（',
+          syncReason,
+          '）',
+        );
       } else {
         console.log('[syncService] 配置内容相同且更新时间在1天内，无需同步');
       }
@@ -1605,7 +1900,9 @@ export async function autoSyncConfig(): Promise<boolean> {
     } else if (isContentSame && cloudConfigId) {
       // ConfigId 不匹配或本地没有 configId，但配置内容相同且历史记录有 configId
       // 使用历史记录的 configId 更新本地配置
-      console.log('[syncService] ConfigId 不匹配但配置内容相同，使用历史记录的 configId 更新本地配置');
+      console.log(
+        '[syncService] ConfigId 不匹配但配置内容相同，使用历史记录的 configId 更新本地配置',
+      );
 
       // 使用历史记录的 configId 更新本地配置
       store.dispatch(loadConfig({ configId: cloudConfigId }));
@@ -1626,11 +1923,17 @@ export async function autoSyncConfig(): Promise<boolean> {
       }
 
       // 时间差大于1天，需要更新历史记录
-      console.log('[syncService] 配置内容相同，但更新时间超过1天（', timeDiffDays.toFixed(2), '天），需要更新');
+      console.log(
+        '[syncService] 配置内容相同，但更新时间超过1天（',
+        timeDiffDays.toFixed(2),
+        '天），需要更新',
+      );
 
       // 先更新本地配置的 updatedAt 为当前时间
       const currentTime = dayjs().valueOf();
-      const currentTimeString = dayjs(currentTime).format('YYYY-MM-DD HH:mm:ss');
+      const currentTimeString = dayjs(currentTime).format(
+        'YYYY-MM-DD HH:mm:ss',
+      );
       store.dispatch(loadConfig({ updatedAt: currentTimeString }));
       // 等待配置更新完成
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1646,12 +1949,16 @@ export async function autoSyncConfig(): Promise<boolean> {
         await historyBatchManager.commit();
       }
 
-      console.log('[syncService] 自动同步完成：已使用历史记录的 configId 更新配置');
+      console.log(
+        '[syncService] 自动同步完成：已使用历史记录的 configId 更新配置',
+      );
       historyBatchManager.reset();
       return true;
     } else {
       // ConfigId 不匹配或不存在，且配置内容不同，需要比较更新时间决定使用哪个配置
-      console.log('[syncService] ConfigId 不匹配或不存在，且配置内容不同，比较更新时间决定同步方向');
+      console.log(
+        '[syncService] ConfigId 不匹配或不存在，且配置内容不同，比较更新时间决定同步方向',
+      );
 
       // 比较更新时间
       const localUpdatedAt = localConfig.updatedAt;
@@ -1661,7 +1968,10 @@ export async function autoSyncConfig(): Promise<boolean> {
       console.log('[syncService] 时间比较结果:', {
         localUpdatedAt: dayjs(localUpdatedAt).format('YYYY-MM-DD HH:mm:ss'),
         cloudUpdatedAt: dayjs(cloudUpdatedAt).format('YYYY-MM-DD HH:mm:ss'),
-        timeDiff: timeDiff > 0 ? `本地更新（${timeDiff}ms）` : `云端更新（${-timeDiff}ms）`,
+        timeDiff:
+          timeDiff > 0
+            ? `本地更新（${timeDiff}ms）`
+            : `云端更新（${-timeDiff}ms）`,
       });
 
       if (timeDiff < 0) {
@@ -1696,7 +2006,9 @@ export async function autoSyncConfig(): Promise<boolean> {
         const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
         // 更新本地配置的 configId
-        store.dispatch(loadConfig({ configId: newConfigId, updatedAt: currentTimeString }));
+        store.dispatch(
+          loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+        );
 
         // 等待配置更新完成
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1759,8 +2071,16 @@ export async function manualSyncConfig(): Promise<boolean> {
     const localConfigId = localConfig.settings.configId;
     const firstConfigId = firstHistory?.settings?.configId;
 
-    if (firstHistory && localConfigId && firstConfigId && localConfigId === firstConfigId) {
-      const differences = detectConfigDifferences(localConfig.settings, firstHistory.settings);
+    if (
+      firstHistory &&
+      localConfigId &&
+      firstConfigId &&
+      localConfigId === firstConfigId
+    ) {
+      const differences = detectConfigDifferences(
+        localConfig.settings,
+        firstHistory.settings,
+      );
       if (differences.length === 0) {
         const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
         store.dispatch(loadConfig({ updatedAt: currentTimeString }));
@@ -1783,13 +2103,13 @@ export async function manualSyncConfig(): Promise<boolean> {
           const existingFileId = await getOrCreateFileIdWithToken(
             DRIVE_CONFIG_FILE_NAME,
             DRIVE_CONFIG_FILE_ID_KEY,
-            token
+            token,
           );
           const fileId = await uploadFileToDriveWithToken(
             DRIVE_CONFIG_FILE_NAME,
             JSON.stringify(syncConfig),
             existingFileId || undefined,
-            token
+            token,
           );
           await saveFileId(fileId, DRIVE_CONFIG_FILE_ID_KEY);
         } else {
@@ -1821,17 +2141,25 @@ export async function manualSyncConfig(): Promise<boolean> {
 /**
  * 删除 Google Drive 中的文件（使用已获取的 token）
  */
-async function deleteFileFromDriveWithToken(fileId: string, token: string): Promise<boolean> {
+async function deleteFileFromDriveWithToken(
+  fileId: string,
+  token: string,
+): Promise<boolean> {
   try {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json().catch(() => ({ error: { message: '删除文件失败' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: '删除文件失败' } }));
 
       // 检查是否是权限不足错误
       if (isInsufficientPermissionError(error, response.status)) {
@@ -1868,7 +2196,10 @@ export async function deleteConfig(): Promise<boolean> {
       throw new Error('请先登录 Google 账户');
     }
 
-    const fileId = await getOrCreateFileId(DRIVE_CONFIG_FILE_NAME, DRIVE_CONFIG_FILE_ID_KEY);
+    const fileId = await getOrCreateFileId(
+      DRIVE_CONFIG_FILE_NAME,
+      DRIVE_CONFIG_FILE_ID_KEY,
+    );
 
     if (!fileId) {
       return true; // 文件不存在，视为删除成功
@@ -1894,17 +2225,24 @@ export async function deleteConfig(): Promise<boolean> {
 /**
  * 保存历史记录到 Google Drive（使用已获取的 token）
  */
-async function saveHistoryToDriveWithToken(historyData: SyncHistoryList, token: string): Promise<void> {
+async function saveHistoryToDriveWithToken(
+  historyData: SyncHistoryList,
+  token: string,
+): Promise<void> {
   try {
     // 获取或创建文件 ID（使用已获取的 token）
-    const existingFileId = await getOrCreateFileIdWithToken(DRIVE_HISTORY_FILE_NAME, DRIVE_HISTORY_FILE_ID_KEY, token);
+    const existingFileId = await getOrCreateFileIdWithToken(
+      DRIVE_HISTORY_FILE_NAME,
+      DRIVE_HISTORY_FILE_ID_KEY,
+      token,
+    );
 
     // 上传到 Google Drive（使用已获取的 token）
     const fileId = await uploadFileToDriveWithToken(
       DRIVE_HISTORY_FILE_NAME,
       JSON.stringify(historyData),
       existingFileId || undefined,
-      token
+      token,
     );
 
     // 保存文件 ID
@@ -1937,10 +2275,16 @@ async function saveHistoryToDrive(historyData: SyncHistoryList): Promise<void> {
  * 从 Google Drive 加载历史记录（使用已获取的 token）
  * 注意：调用此函数前应确保用户已登录
  */
-export async function loadHistoryFromDriveWithToken(token: string): Promise<SyncHistoryList | null> {
+export async function loadHistoryFromDriveWithToken(
+  token: string,
+): Promise<SyncHistoryList | null> {
   try {
     // 获取文件 ID（使用已获取的 token）
-    const fileId = await getOrCreateFileIdWithToken(DRIVE_HISTORY_FILE_NAME, DRIVE_HISTORY_FILE_ID_KEY, token);
+    const fileId = await getOrCreateFileIdWithToken(
+      DRIVE_HISTORY_FILE_NAME,
+      DRIVE_HISTORY_FILE_ID_KEY,
+      token,
+    );
 
     if (!fileId) {
       return null;
@@ -1996,7 +2340,7 @@ class HistoryBatchManager {
   async begin(token: string): Promise<void> {
     // 保存 token 用于后续自动恢复
     this.lastToken = token;
-    
+
     // 如果已经在活跃状态，先重置（防止状态冲突）
     if (this.isActive) {
       console.warn('[HistoryBatchManager] 检测到未完成的批量操作，重置状态');
@@ -2025,14 +2369,21 @@ class HistoryBatchManager {
     if (!this.isActive) {
       // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
       if (this.lastToken) {
-        console.warn('[HistoryBatchManager] add() 检测到批量操作未开始，尝试自动恢复');
+        console.warn(
+          '[HistoryBatchManager] add() 检测到批量操作未开始，尝试自动恢复',
+        );
         // 注意：这里不能 await，因为这是同步方法
         // 所以只是设置状态，实际的加载会在后台进行
         this.token = this.lastToken;
         this.isActive = true;
         this.histories = []; // 先清空，等待后续 commit 时再加载
       } else {
-        console.error('[HistoryBatchManager] add() 调用时批量操作未开始，isActive:', this.isActive, 'token:', this.token);
+        console.error(
+          '[HistoryBatchManager] add() 调用时批量操作未开始，isActive:',
+          this.isActive,
+          'token:',
+          this.token,
+        );
         throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
       }
     }
@@ -2058,12 +2409,17 @@ class HistoryBatchManager {
     if (!this.isActive) {
       // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
       if (this.lastToken) {
-        console.warn('[HistoryBatchManager] remove() 检测到批量操作未开始，尝试自动恢复');
+        console.warn(
+          '[HistoryBatchManager] remove() 检测到批量操作未开始，尝试自动恢复',
+        );
         this.token = this.lastToken;
         this.isActive = true;
         this.histories = []; // 先清空，等待后续 commit 时再加载
       } else {
-        console.error('[HistoryBatchManager] remove() 调用时批量操作未开始，isActive:', this.isActive);
+        console.error(
+          '[HistoryBatchManager] remove() 调用时批量操作未开始，isActive:',
+          this.isActive,
+        );
         throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
       }
     }
@@ -2080,12 +2436,17 @@ class HistoryBatchManager {
     if (!this.isActive) {
       // 尝试自动恢复：如果保存了 token，自动开始新的批量操作
       if (this.lastToken) {
-        console.warn('[HistoryBatchManager] update() 检测到批量操作未开始，尝试自动恢复');
+        console.warn(
+          '[HistoryBatchManager] update() 检测到批量操作未开始，尝试自动恢复',
+        );
         this.token = this.lastToken;
         this.isActive = true;
         this.histories = []; // 先清空，等待后续 commit 时再加载
       } else {
-        console.error('[HistoryBatchManager] update() 调用时批量操作未开始，isActive:', this.isActive);
+        console.error(
+          '[HistoryBatchManager] update() 调用时批量操作未开始，isActive:',
+          this.isActive,
+        );
         throw new Error('请先调用 beginHistoryBatch() 开始批量操作');
       }
     }
@@ -2104,7 +2465,12 @@ class HistoryBatchManager {
    */
   async commit(): Promise<void> {
     if (!this.isActive || !this.token) {
-      console.error('[HistoryBatchManager] commit() 调用时批量操作未开始或 token 无效，isActive:', this.isActive, 'token:', this.token ? 'present' : 'missing');
+      console.error(
+        '[HistoryBatchManager] commit() 调用时批量操作未开始或 token 无效，isActive:',
+        this.isActive,
+        'token:',
+        this.token ? 'present' : 'missing',
+      );
       throw new Error('批量操作未开始或 token 无效');
     }
 
@@ -2112,13 +2478,13 @@ class HistoryBatchManager {
     try {
       const historyData = await loadHistoryFromDriveWithToken(this.token);
       const cloudHistories = historyData?.histories || [];
-      
+
       // 合并本地更改到云端历史记录
       // 使用 configId 作为唯一标识，确保不会重复
       if (cloudHistories.length > 0 && this.histories.length > 0) {
         // 创建一个 Map 来存储所有记录（使用 configId 作为键）
         const historyMap = new Map<string, SyncHistory>();
-        
+
         // 先添加云端记录
         for (const cloudHistory of cloudHistories) {
           const configId = cloudHistory.settings.configId;
@@ -2126,32 +2492,41 @@ class HistoryBatchManager {
             historyMap.set(configId, cloudHistory);
           }
         }
-        
+
         // 然后用本地记录覆盖（本地记录包含最新的更改）
         for (const localHistory of this.histories) {
           const configId = localHistory.settings.configId;
           if (configId) {
             // 如果云端没有这个 configId，或者本地记录更新，则使用本地记录
             const existingHistory = historyMap.get(configId);
-            if (!existingHistory || localHistory.updatedAt > existingHistory.updatedAt) {
+            if (
+              !existingHistory ||
+              localHistory.updatedAt > existingHistory.updatedAt
+            ) {
               historyMap.set(configId, localHistory);
             }
           }
         }
-        
+
         // 转换回数组并排序（最新的在前）
         this.histories = Array.from(historyMap.values());
         this.histories.sort((a, b) => b.updatedAt - a.updatedAt);
-        
+
         // 限制数量
         this.histories = this.histories.slice(0, MAX_HISTORY_COUNT);
       }
     } catch (error: any) {
-      console.error('[HistoryBatchManager] commit() 加载云端历史记录失败:', error);
+      console.error(
+        '[HistoryBatchManager] commit() 加载云端历史记录失败:',
+        error,
+      );
       // 加载失败时，继续使用本地的历史记录
     }
 
-    await saveHistoryToDriveWithToken({ histories: this.histories }, this.token);
+    await saveHistoryToDriveWithToken(
+      { histories: this.histories },
+      this.token,
+    );
 
     // 同步更新 store 中的历史记录
     store.dispatch(setHistories(this.histories));
@@ -2194,7 +2569,11 @@ const historyBatchManager = new HistoryBatchManager();
  * 添加历史记录到 Google Drive（使用已获取的 token）
  * 优化：如果已有批量操作在进行，直接添加到批量操作中；否则创建新的批量操作
  */
-async function addToHistoryWithToken(config: SyncConfigParsed, type: 'upload' | 'download' | 'restore', token: string): Promise<void> {
+async function addToHistoryWithToken(
+  config: SyncConfigParsed,
+  type: 'upload' | 'download' | 'restore',
+  token: string,
+): Promise<void> {
   try {
     // 如果批量操作未开始，先开始批量操作
     if (!historyBatchManager['isActive']) {
@@ -2219,7 +2598,10 @@ async function addToHistoryWithToken(config: SyncConfigParsed, type: 'upload' | 
 /**
  * 添加历史记录到 Google Drive
  */
-async function addToHistory(config: SyncConfigParsed, type: 'upload' | 'download' | 'restore'): Promise<void> {
+async function addToHistory(
+  config: SyncConfigParsed,
+  type: 'upload' | 'download' | 'restore',
+): Promise<void> {
   try {
     // 检查登录状态
     if (!(await isLoggedIn())) {
@@ -2247,7 +2629,11 @@ export async function getSyncHistory(): Promise<SyncHistory[]> {
   try {
     // 优先从 store 读取历史记录
     const state = store.getState();
-    if (state.userInfo && state.userInfo.histories && state.userInfo.histories.length > 0) {
+    if (
+      state.userInfo &&
+      state.userInfo.histories &&
+      state.userInfo.histories.length > 0
+    ) {
       return state.userInfo.histories;
     }
 
@@ -2321,7 +2707,10 @@ export async function clearAllSyncHistory(): Promise<boolean> {
 
     // 2. 删除配置文件（如果存在）
     try {
-      const configFileId = await findFileInDriveWithToken(DRIVE_CONFIG_FILE_NAME, token);
+      const configFileId = await findFileInDriveWithToken(
+        DRIVE_CONFIG_FILE_NAME,
+        token,
+      );
       if (configFileId) {
         await deleteFileFromDriveWithToken(configFileId, token);
         console.log('[syncService] 已删除云端配置文件');
@@ -2332,7 +2721,10 @@ export async function clearAllSyncHistory(): Promise<boolean> {
     }
 
     // 3. 清除本地存储的文件ID
-    await chrome.storage.local.remove([DRIVE_CONFIG_FILE_ID_KEY, DRIVE_HISTORY_FILE_ID_KEY]);
+    await chrome.storage.local.remove([
+      DRIVE_CONFIG_FILE_ID_KEY,
+      DRIVE_HISTORY_FILE_ID_KEY,
+    ]);
 
     // 4. 同步更新 store
     store.dispatch(clearHistories());
@@ -2430,7 +2822,9 @@ export async function exportCurrentConfig(): Promise<string> {
  * 6. 导入到当前配置
  * 从 JSON 字符串导入配置并应用到当前配置
  */
-export async function importToCurrentConfig(jsonData: string): Promise<boolean> {
+export async function importToCurrentConfig(
+  jsonData: string,
+): Promise<boolean> {
   try {
     const importData = JSON.parse(jsonData);
 
@@ -2467,7 +2861,10 @@ export async function importToCurrentConfig(jsonData: string): Promise<boolean> 
 /**
  * 根据 configId 查找匹配的历史记录
  */
-export function findHistoryByConfigId(histories: SyncHistory[], configId: string | undefined): SyncHistory | undefined {
+export function findHistoryByConfigId(
+  histories: SyncHistory[],
+  configId: string | undefined,
+): SyncHistory | undefined {
   if (!configId) {
     return undefined;
   }
@@ -2493,7 +2890,7 @@ export const pullFromDrive = pullConfig;
 export const exportSyncHistory = async (): Promise<string> => {
   // 优先从 store 读取历史记录
   const state = store.getState();
-  const histories = state.userInfo?.histories || await getSyncHistory();
+  const histories = state.userInfo?.histories || (await getSyncHistory());
 
   // 从历史记录中提取配置，按 configId 去重，保留最新的配置
   const configMap = new Map<string, ConfigState>();
@@ -2506,7 +2903,13 @@ export const exportSyncHistory = async (): Promise<string> => {
 
     // 如果该 configId 不存在，或者当前历史记录的更新时间更晚，则更新
     const existingConfig = configMap.get(configId);
-    if (!existingConfig || history.updatedAt > (existingConfig.updatedAt ? dayjs(existingConfig.updatedAt).valueOf() : 0)) {
+    if (
+      !existingConfig ||
+      history.updatedAt >
+        (existingConfig.updatedAt
+          ? dayjs(existingConfig.updatedAt).valueOf()
+          : 0)
+    ) {
       configMap.set(configId, history.settings);
     }
   }
@@ -2533,7 +2936,9 @@ export const exportSyncHistory = async (): Promise<string> => {
  * 导入配置列表
  * 导入配置列表，找到最新的配置并应用到本地，同时将导入的配置添加到历史记录中
  */
-export const importSyncHistory = async (jsonData: string): Promise<{ success: number; failed: number }> => {
+export const importSyncHistory = async (
+  jsonData: string,
+): Promise<{ success: number; failed: number }> => {
   try {
     const importData = JSON.parse(jsonData);
 
@@ -2545,7 +2950,9 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       configs = importData.configs;
     } else if (importData.histories && Array.isArray(importData.histories)) {
       // 旧格式：历史记录列表，提取配置
-      configs = importData.histories.map((h: SyncHistory) => h.settings).filter((s: ConfigState) => s);
+      configs = importData.histories
+        .map((h: SyncHistory) => h.settings)
+        .filter((s: ConfigState) => s);
     } else {
       throw new Error('无效的导入格式：需要 configs 或 histories 字段');
     }
@@ -2597,13 +3004,15 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       const currentConfigIds = new Set(
         currentHistories
           .map((h) => h.settings.configId)
-          .filter((id): id is string => !!id)
+          .filter((id): id is string => !!id),
       );
 
       // 将导入的配置添加到历史记录中（跳过已存在的 configId）
       for (const config of validConfigs) {
         if (config.configId && !currentConfigIds.has(config.configId)) {
-          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : dayjs().valueOf();
+          const configUpdatedAt = config.updatedAt
+            ? dayjs(config.updatedAt).valueOf()
+            : dayjs().valueOf();
           const newHistory: SyncHistory = {
             id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
             updatedAt: configUpdatedAt,
@@ -2635,7 +3044,7 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       const currentConfigIds = new Set(
         currentHistories
           .map((h) => h.settings.configId)
-          .filter((id): id is string => !!id)
+          .filter((id): id is string => !!id),
       );
 
       const newHistories: SyncHistory[] = [];
@@ -2643,7 +3052,9 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       // 将导入的配置添加到历史记录中（跳过已存在的 configId）
       for (const config of validConfigs) {
         if (config.configId && !currentConfigIds.has(config.configId)) {
-          const configUpdatedAt = config.updatedAt ? dayjs(config.updatedAt).valueOf() : dayjs().valueOf();
+          const configUpdatedAt = config.updatedAt
+            ? dayjs(config.updatedAt).valueOf()
+            : dayjs().valueOf();
           const newHistory: SyncHistory = {
             id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
             updatedAt: configUpdatedAt,
@@ -2676,9 +3087,9 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
       try {
         // 准备同步配置（使用导入的配置，保持原有的 configId）
         const configUpdatedAt = latestConfig.updatedAt
-          ? (typeof latestConfig.updatedAt === 'string'
-              ? dayjs(latestConfig.updatedAt).valueOf()
-              : latestConfig.updatedAt)
+          ? typeof latestConfig.updatedAt === 'string'
+            ? dayjs(latestConfig.updatedAt).valueOf()
+            : latestConfig.updatedAt
           : dayjs().valueOf();
 
         const syncConfig: SyncConfigStorage = {
@@ -2687,14 +3098,18 @@ export const importSyncHistory = async (jsonData: string): Promise<{ success: nu
         };
 
         // 获取或创建文件 ID
-        const existingFileId = await getOrCreateFileIdWithToken(DRIVE_CONFIG_FILE_NAME, DRIVE_CONFIG_FILE_ID_KEY, token);
+        const existingFileId = await getOrCreateFileIdWithToken(
+          DRIVE_CONFIG_FILE_NAME,
+          DRIVE_CONFIG_FILE_ID_KEY,
+          token,
+        );
 
         // 上传到 Google Drive
         const fileId = await uploadFileToDriveWithToken(
           DRIVE_CONFIG_FILE_NAME,
           JSON.stringify(syncConfig),
           existingFileId || undefined,
-          token
+          token,
         );
 
         // 保存文件 ID
@@ -2738,7 +3153,9 @@ export function startAutoSync(): void {
     }
   }, AUTO_SYNC_INTERVAL);
 
-  console.log(`[syncService] 已启动全局自动同步定时器（${AUTO_SYNC_INTERVAL_MINUTES}分钟）`);
+  console.log(
+    `[syncService] 已启动全局自动同步定时器（${AUTO_SYNC_INTERVAL_MINUTES}分钟）`,
+  );
 }
 
 /**

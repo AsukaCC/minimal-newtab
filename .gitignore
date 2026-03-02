@@ -23,11 +23,22 @@ dist-ssr
 *.sln
 *.sw?
 
-# Chrome Extension
-*.crx
-*.pem
+# 构建输出
+build/
+extension/
 
-# Environment variables
+# 测试
+coverage/
+*.lcov
+
+# 环境配置
 .env
 .env.local
-.env.*.local
+.env.production
+
+# Firebase 配置文件（包含敏感信息）
+src/services/firebaseConfig.ts
+
+# 临时文件
+*.tmp
+*.temp

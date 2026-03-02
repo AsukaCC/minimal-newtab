@@ -64,6 +64,9 @@
   "settings_navBarConfigDescription": {
     "message": "Configure nav bar"
   },
+  "settings_syncHistory": {
+    "message": "Sync History"
+  },
   "settings_navBarResetConfirm": {
     "message": "Reset to default list?"
   },

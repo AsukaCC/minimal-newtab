@@ -64,6 +64,9 @@
   "settings_navBarConfigDescription": {
     "message": "配置导航栏网站"
   },
+  "settings_syncHistory": {
+    "message": "同步历史"
+  },
   "settings_navBarResetConfirm": {
     "message": "确定要重置为默认列表吗？"
   },

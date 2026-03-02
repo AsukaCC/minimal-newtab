@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import styles from './index.module.css';
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import { useI18n } from '../../hooks/useI18n';
 import SyncHistorySetting from './components/SyncHistorySetting';
 import SyncHistoryModal from '../SyncHistoryModal';
@@ -11,9 +11,6 @@ import NavBarSetting from './components/NavBarSetting';
 import NavBarConfigPage from './components/NavBarConfigPage';
 import ConfigInfoHeader from './components/ConfigInfoHeader';
 import ConfigInfoSubHeader from './components/ConfigInfoSubHeader';
-import { logout as logoutService, isLoggedIn as checkIsLoggedIn, getAccessToken, loadHistoryFromDriveWithToken, getUserInfo, syncConfig } from '../../services/syncService';
-import { setLoggedIn, setHistories, setLoadingHistories, setUserEmail, setUserName, setUserAvatar } from '../../store';
-import { resetConfig } from '../../store';
 import { SettingsIcon } from '../../common/svgIcon';
 import type { PageComponent } from './types';
 
@@ -26,7 +23,6 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const slidingWrapperRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
-  const dispatch = useAppDispatch();
   const themeColor = useAppSelector((state) => state.config.themeColor);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   // 页面栈：动态存储所有页面组件
@@ -38,13 +34,6 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     pagesRef.current = pages;
   }, [pages]);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const userEmail = useAppSelector((state) => state.userInfo.userEmail);
-  const userName = useAppSelector((state) => state.userInfo.userName);
-  const userAvatar = useAppSelector((state) => state.userInfo.userAvatar);
-  const isLoggedIn = useAppSelector((state) => state.userInfo.isLoggedIn);
-
   // 初始化主页
   useEffect(() => {
     if (!isOpen || pages.length > 0) return;
@@ -57,14 +46,6 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
         <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
           <div className={styles.settingsHeader}>
             <ConfigInfoHeader
-              isLoggedIn={isLoggedIn}
-              userEmail={userEmail}
-              userName={userName}
-              userAvatar={userAvatar}
-              isLoggingOut={isLoggingOut}
-              isLoggingIn={isLoggingIn}
-              onLogout={handleLogout}
-              onLogin={handleLogin}
               onClose={onClose}
               t={t}
             />
@@ -139,137 +120,6 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
       document.documentElement.style.setProperty('--color-primary', themeColor);
     }
   }, [themeColor]);
-
-  // 检查 Google OAuth2 登录状态
-  const checkGoogleLoginStatus = useCallback(async (): Promise<boolean> => {
-    try {
-      const loggedIn = await checkIsLoggedIn();
-      dispatch(setLoggedIn(loggedIn));
-
-      if (loggedIn) {
-        try {
-          dispatch(setLoadingHistories(true));
-          // 使用非交互式方式获取 token，避免触发登录弹窗
-          const token = await getAccessToken(false);
-          const historyData = await loadHistoryFromDriveWithToken(token);
-          if (historyData && historyData.histories) {
-            dispatch(setHistories(historyData.histories));
-          } else {
-            dispatch(setHistories([]));
-          }
-
-          try {
-            const userInfo = await getUserInfo();
-            if (userInfo?.email) {
-              dispatch(setUserEmail(userInfo.email));
-            }
-            if (userInfo?.name) {
-              dispatch(setUserName(userInfo.name));
-            }
-            if (userInfo?.avatarUrl) {
-              dispatch(setUserAvatar(userInfo.avatarUrl));
-            }
-          } catch (error) {
-            console.error('[ConfigInfo] 获取用户信息失败:', error);
-          }
-        } catch (error) {
-          console.error('[ConfigInfo] 拉取历史记录失败:', error);
-          dispatch(setHistories([]));
-        } finally {
-          dispatch(setLoadingHistories(false));
-        }
-      } else {
-        dispatch(setHistories([]));
-        dispatch(setUserEmail(null));
-        dispatch(setUserName(null));
-        dispatch(setUserAvatar(null));
-      }
-
-      return loggedIn;
-    } catch (error) {
-      console.error('[ConfigInfo] 检查登录状态失败:', error);
-      dispatch(setLoggedIn(false));
-      dispatch(setHistories([]));
-      return false;
-    }
-  }, [dispatch]);
-
-  // 处理登录
-  const handleLogin = useCallback(async () => {
-    if (isLoggingIn) {
-      return;
-    }
-
-    setIsLoggingIn(true);
-
-    try {
-      const token = await getAccessToken();
-
-      if (!token) {
-        throw new Error('未获取到访问令牌');
-      }
-
-      await checkGoogleLoginStatus();
-
-      // 异步同步配置，不阻塞登录流程
-      setTimeout(async () => {
-        try {
-          console.log('[ConfigInfo] 开始异步同步配置...');
-          const result = await syncConfig();
-          if (result.message) {
-            console.log('[ConfigInfo] 同步结果:', result.message);
-          }
-        } catch (syncErr: any) {
-          console.error('[ConfigInfo] 异步同步配置失败:', syncErr);
-        }
-      }, 100);
-    } catch (err: any) {
-      const errorMessage = err.message || '';
-      const isUserCancelled = errorMessage.includes('用户取消了登录') ||
-        errorMessage.includes('user cancelled') ||
-        errorMessage.includes('access_denied') ||
-        errorMessage.includes('did not approve access') ||
-        (errorMessage.includes('OAuth2') && errorMessage.includes('invalid_grant'));
-
-      if (!isUserCancelled) {
-        console.error('[ConfigInfo] 登录失败:', errorMessage);
-      }
-      // 无论何种错误，直接清除登录状态，不再调用 checkGoogleLoginStatus
-      // 避免 getAccessToken(interactive:true) 再次弹出登录窗口
-      dispatch(setLoggedIn(false));
-    } finally {
-      setIsLoggingIn(false);
-    }
-  }, [isLoggingIn, checkGoogleLoginStatus, t, dispatch]);
-
-  // 处理登出
-  const handleLogout = useCallback(async () => {
-    if (isLoggingOut) {
-      return;
-    }
-
-    if (!confirm(t('popup_confirmLogout') || '确定要登出吗？')) {
-      return;
-    }
-
-    setIsLoggingOut(true);
-
-    try {
-      await logoutService();
-    } catch (err: any) {
-      console.error('[ConfigInfo] 登出失败:', err);
-    } finally {
-      // 无论成功失败，始终清除本地状态，不调用 checkGoogleLoginStatus
-      // 避免因 getAccessToken(interactive:true) 意外触发登录弹窗
-      dispatch(resetConfig());
-      dispatch(setLoggedIn(false));
-      dispatch(setUserEmail(null));
-      dispatch(setUserName(null));
-      dispatch(setUserAvatar(null));
-      dispatch(setHistories([]));
-      setIsLoggingOut(false);
-    }
-  }, [isLoggingOut, t, dispatch]);
 
   // 返回上一页
   const handleBack = useCallback(() => {
