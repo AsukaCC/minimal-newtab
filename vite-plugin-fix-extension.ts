@@ -1,12 +1,5 @@
 import type { Plugin } from 'vite';
-import {
-  copyFileSync,
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-  existsSync,
-  rmSync,
-} from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -25,13 +18,28 @@ export function fixExtension(): Plugin {
       const popupHtmlDest = join(distDir, 'popup.html');
       const srcDir = join(distDir, 'src');
 
-      // 复制 manifest.json
+      // 读取并修正 manifest.json，然后输出到 dist
       try {
+        const rawManifest = readFileSync(manifestSrc, 'utf-8');
+        const manifest = JSON.parse(rawManifest);
+
+        // 从环境变量中注入扩展 key 与 OAuth2 client_id
+        const { VITE_CHROME_EXTENSION_KEY, VITE_GOOGLE_CLIENT_ID } =
+          process.env;
+
+        if (VITE_CHROME_EXTENSION_KEY) {
+          manifest.key = VITE_CHROME_EXTENSION_KEY;
+        }
+
+        if (manifest.oauth2 && VITE_GOOGLE_CLIENT_ID) {
+          manifest.oauth2.client_id = VITE_GOOGLE_CLIENT_ID;
+        }
+
         mkdirSync(distDir, { recursive: true });
-        copyFileSync(manifestSrc, manifestDest);
-        console.log('✓ manifest.json copied to dist');
+        writeFileSync(manifestDest, JSON.stringify(manifest, null, 2));
+        console.log('✓ manifest.json generated with env overrides');
       } catch (error) {
-        console.error('Error copying manifest.json:', error);
+        console.error('Error generating manifest.json:', error);
       }
 
       // 移动并修复 popup.html

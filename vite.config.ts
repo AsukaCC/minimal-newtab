@@ -1,9 +1,16 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { fixExtension } from './vite-plugin-fix-extension';
 
 export default defineConfig(({ mode }) => {
+  // 加载 .env 中的变量（包括 VITE_ 前缀）
+  const env = loadEnv(mode, process.cwd(), '');
+
+  // 将需要在 Node 端使用的变量同步到 process.env，供插件读取
+  process.env.VITE_CHROME_EXTENSION_KEY = env.VITE_CHROME_EXTENSION_KEY;
+  process.env.VITE_GOOGLE_CLIENT_ID = env.VITE_GOOGLE_CLIENT_ID;
+
   // 检查是否为开发模式（通过 mode）
   const isDev =
     mode === 'development' || process.env.NODE_ENV === 'development';
