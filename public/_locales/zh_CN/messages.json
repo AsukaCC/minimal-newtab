@@ -448,5 +448,11 @@
   },
   "popup_pleaseLoginToUseSync": {
     "message": "请先登录 Google 账户以使用同步功能"
+  },
+  "popup_syncStatus": {
+    "message": "同步状态"
+  },
+  "popup_chromeSync": {
+    "message": "Chrome 同步"
   }
 }

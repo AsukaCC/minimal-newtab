@@ -1,20 +1,24 @@
 import React from 'react';
 import styles from '../../index.module.css';
 import { BackIcon } from '../../../../common/svgIcon';
+import { useI18n } from '../../../../hooks/useI18n';
 
 export interface ConfigInfoSubHeaderProps {
   onBack: () => void;
-  t: (key: string) => string | undefined;
   title?: string;
+  titleKey?: string;
   actions?: React.ReactNode;
 }
 
 const ConfigInfoSubHeader: React.FC<ConfigInfoSubHeaderProps> = ({
   onBack,
-  t,
   title,
+  titleKey,
   actions,
 }) => {
+  const { t } = useI18n();
+  const displayTitle = titleKey ? (t(titleKey) || title) : title;
+
   return (
     <div className={styles.header}>
       <div className={styles.headerLeft}>
@@ -25,7 +29,7 @@ const ConfigInfoSubHeader: React.FC<ConfigInfoSubHeaderProps> = ({
         >
           <BackIcon className={styles.backIcon} />
         </button>
-        {title && <span className={styles.subHeaderTitle}>{title}</span>}
+        {displayTitle && <span className={styles.subHeaderTitle}>{displayTitle}</span>}
       </div>
       {actions && <div className={styles.actions}>{actions}</div>}
     </div>

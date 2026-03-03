@@ -1,13 +1,10 @@
 /**
- * Firebase 同步服务 - 简单使用示例
+ * Chrome 同步服务 - 简单使用示例
  * 
  * 复制此代码到你的项目中使用
  */
 
 import {
-  initializeFirebase,
-  isLoggedIn,
-  getUserInfo,
   uploadConfig,
   pullConfig,
   syncConfig,
@@ -16,44 +13,24 @@ import {
   deleteSyncHistory,
   exportCurrentConfig,
   importToCurrentConfig,
-} from './firebaseSyncService';
+  startAutoSync,
+} from './chromeSyncService';
 
 // ==================== 初始化 ====================
 
 /**
- * 在应用启动时调用一次即可
+ * Chrome 同步会自动工作，无需额外初始化
+ * 如果需要启动自动同步，可以调用此函数
  */
-export async function initFirebaseSync() {
-  try {
-    await initializeFirebase();
-    console.log('✓ Firebase 初始化成功');
-    return true;
-  } catch (error: any) {
-    console.error('✗ Firebase 初始化失败:', error.message);
-    return false;
-  }
-}
-
-// ==================== 认证相关 ====================
-
-/**
- * 检查用户是否已登录
- */
-export async function checkLoginStatus(): Promise<boolean> {
-  return await isLoggedIn();
-}
-
-/**
- * 获取当前用户信息
- */
-export async function getCurrentUser() {
-  return await getUserInfo();
+export function startChromeSync() {
+  startAutoSync();
+  console.log('✓ Chrome 自动同步已启动');
 }
 
 // ==================== 同步相关 ====================
 
 /**
- * 上传配置到 Firebase
+ * 上传配置到 Chrome Storage
  */
 export async function upload() {
   try {
@@ -69,7 +46,7 @@ export async function upload() {
 }
 
 /**
- * 从 Firebase 拉取配置
+ * 从 Chrome Storage 拉取配置
  */
 export async function download() {
   try {
@@ -183,35 +160,13 @@ export async function importConfig(jsonData: string): Promise<boolean> {
  * 完整的使用示例
  */
 export async function demo() {
-  console.log('=== Firebase 同步服务演示 ===\n');
+  console.log('=== Chrome 同步服务演示 ===\n');
 
-  // 1. 初始化
-  console.log('1. 初始化 Firebase...');
-  const initialized = await initFirebaseSync();
-  if (!initialized) {
-    console.log('✗ 初始化失败，退出');
-    return;
-  }
+  // 1. Chrome 同步会自动工作，无需初始化
+  console.log('1. Chrome 同步已就绪');
 
-  // 2. 检查登录状态
-  console.log('\n2. 检查登录状态...');
-  const loggedIn = await checkLoginStatus();
-  if (!loggedIn) {
-    console.log('⚠ 用户未登录，请先登录 Google 账户');
-    return;
-  }
-  console.log('✓ 用户已登录');
-
-  // 3. 获取用户信息
-  console.log('\n3. 获取用户信息...');
-  const userInfo = await getCurrentUser();
-  if (userInfo) {
-    console.log('用户邮箱:', userInfo.email);
-    console.log('用户名:', userInfo.name);
-  }
-
-  // 4. 智能同步
-  console.log('\n4. 开始同步配置...');
+  // 2. 智能同步
+  console.log('\n2. 开始同步配置...');
   try {
     const result = await sync();
     console.log('同步结果:', result);
@@ -219,8 +174,8 @@ export async function demo() {
     console.log('同步失败');
   }
 
-  // 5. 获取历史记录
-  console.log('\n5. 获取历史记录...');
+  // 3. 获取历史记录
+  console.log('\n3. 获取历史记录...');
   const histories = await getHistories();
   console.log(`共有 ${histories.length} 条历史记录`);
   
@@ -243,7 +198,7 @@ export async function demo() {
  * 使用方式:
  * ```typescript
  * function MyComponent() {
- *   const { sync, loading, error } = useFirebaseSync();
+ *   const { sync, loading, error } = useChromeSync();
  *   
  *   return (
  *     <div>
@@ -256,7 +211,7 @@ export async function demo() {
  * }
  * ```
  */
-export function useFirebaseSync() {
+export function useChromeSync() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

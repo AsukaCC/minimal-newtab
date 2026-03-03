@@ -227,7 +227,7 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  color: var(--text-secondary);
+  color: var(--color-primary);
   cursor: grab;
   border-radius: 6px;
   transition: color 0.2s ease, background 0.2s ease;

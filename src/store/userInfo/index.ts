@@ -3,11 +3,7 @@
  */
 
 export {
-  setChecking,
-  setLoggedIn,
-  setUserEmail,
-  setUserName,
-  setUserAvatar,
+  setSyncEnabled,
   resetUserInfo,
   setLoadingHistories,
   setHistories,

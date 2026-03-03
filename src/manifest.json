@@ -21,24 +21,10 @@
   },
   "permissions": [
     "storage",
-    "identity",
     "search"
   ],
   "host_permissions": [
-    "https://www.googleapis.com/*",
-    "https://oauth2.googleapis.com/*",
-    "https://accounts.google.com/*",
-    "https://www.google.com/*",
     "https://api.bing.com/*",
     "https://suggestion.baidu.com/*"
-  ],
-  "oauth2": {
-    "_comment_client_id": "Google OAuth2 客户端 ID",
-    "client_id": "",
-    "scopes": [
-      "openid",
-      "email",
-      "profile"
-    ]
-  }
+  ]
 }

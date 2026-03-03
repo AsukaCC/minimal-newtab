@@ -448,5 +448,11 @@
   },
   "popup_pleaseLoginToUseSync": {
     "message": "Please sign in with Google account to use sync features"
+  },
+  "popup_syncStatus": {
+    "message": "Sync Status"
+  },
+  "popup_chromeSync": {
+    "message": "Chrome Sync"
   }
 }

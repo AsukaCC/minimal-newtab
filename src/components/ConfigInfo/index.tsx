@@ -137,13 +137,14 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
       case 'syncHistory':
         newPage = {
           id: 'syncHistory',
-          title: t('settings_syncHistory') || '同步历史',
+          titleKey: 'settings_syncHistory',
+          title: '同步历史',
           showHeader: true,
           showBack: true,
           component: (
             <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
               <div className={styles.settingsHeader}>
-                <ConfigInfoSubHeader onBack={handleBack} t={t} title={t('settings_syncHistory') || '同步历史'} />
+                <ConfigInfoSubHeader onBack={handleBack} titleKey="settings_syncHistory" />
               </div>
               <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
                 <SyncHistoryModal isOpen={true} onClose={handleBack} isSubPage={true} />
@@ -156,13 +157,14 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
       case 'navBarConfig':
         newPage = {
           id: 'navBarConfig',
-          title: t('settings_navBarConfig') || '导航栏配置',
+          titleKey: 'settings_navBarConfig',
+          title: '导航栏配置',
           showHeader: true,
           showBack: true,
           component: (
             <div className={`${styles.settingsContainer} ${isSelectOpen ? styles.selectOpen : ''}`}>
               <div className={styles.settingsHeader}>
-                <ConfigInfoSubHeader onBack={handleBack} t={t} title={t('settings_navBarConfig') || '导航栏配置'} />
+                <ConfigInfoSubHeader onBack={handleBack} titleKey="settings_navBarConfig" />
               </div>
               <div className={`${styles.settingsSection} ${isSelectOpen ? styles.selectOpen : ''}`}>
                 <NavBarConfigPage />

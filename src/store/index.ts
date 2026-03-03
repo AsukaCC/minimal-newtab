@@ -11,12 +11,12 @@ import { configReducer } from './config';
 import { userInfoReducer } from './userInfo';
 
 /**
- * UserInfo 持久化配置 - 只持久化 userEmail / userName / userAvatar
+ * UserInfo 持久化配置 - 只持久化历史记录
  */
 const userInfoPersistConfig = {
   key: 'userInfo',
   storage,
-  whitelist: ['userEmail', 'userName', 'userAvatar'], // 只持久化 userEmail / userName / userAvatar
+  whitelist: ['histories'], // 只持久化历史记录
 };
 
 /**
@@ -81,11 +81,7 @@ export type { ConfigState } from './config';
 
 // 重新导出用户信息相关的 actions 和类型
 export {
-  setChecking,
-  setLoggedIn,
-  setUserEmail,
-  setUserName,
-  setUserAvatar,
+  setSyncEnabled,
   resetUserInfo,
   setLoadingHistories,
   setHistories,
@@ -96,10 +92,9 @@ export {
 } from './userInfo';
 export type { UserInfoState } from './userInfo';
 
-// 向后兼容：导出旧的 auth 相关名称
+// 向后兼容：导出旧的 auth 相关名称（已废弃）
 export {
-  setChecking as setAuthChecking,
-  setLoggedIn as setAuthLoggedIn,
+  setSyncEnabled as setChecking,
   resetUserInfo as resetAuth,
 } from './userInfo';
 export type { UserInfoState as AuthState } from './userInfo';

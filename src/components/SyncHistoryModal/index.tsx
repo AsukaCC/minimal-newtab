@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useI18n } from '../../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setHistories, setLoadingHistories } from '../../store';
-import { manualSyncConfig, restoreFromHistory, deleteSyncHistory, exportSyncHistory, importSyncHistory, clearAllSyncHistory, findHistoryByConfigId, getLocalConfig, loadHistoryFromDriveWithToken, getAccessToken, resetAutoSyncTimer } from '../../services/syncService';
+import { manualSyncConfig, restoreFromHistory, deleteSyncHistory, exportSyncHistory, importSyncHistory, clearAllSyncHistory, findHistoryByConfigId, getLocalConfig, resetAutoSyncTimer } from '../../services/chromeSyncService';
 import dayjs from 'dayjs';
 import styles from './index.module.css';
 import Button from '../Button';
@@ -16,10 +16,8 @@ interface SyncHistoryModalProps {
 const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, isSubPage = false }) => {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
-  // 从 Redux store 读取历史记录和登录状态
+  // 从 Redux store 读取历史记录
   const histories = useAppSelector((state) => state.userInfo.histories);
-  const isLoggedIn = useAppSelector((state) => state.userInfo.isLoggedIn);
-  const isChecking = useAppSelector((state) => state.userInfo.isChecking);
   const isLoadingHistories = useAppSelector((state) => state.userInfo.isLoadingHistories);
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -63,13 +61,11 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
     }
   }, [histories]);
 
-  // 从云端拉取历史记录
+  // 从云端拉取历史记录（Chrome 同步自动工作）
   const refreshHistory = useCallback(async () => {
-    if (!isLoggedIn) {
-      return;
-    }
+    // Chrome 同步始终可用，无需检查登录状态
 
-    // 防止频繁请求：如果距离上次请求不到2秒，跳过
+    // 防止频繁请求：如果距离上次请求不到 2 秒，跳过
     const now = dayjs().valueOf();
     if (now - lastLoadTimeRef.current < 2000) {
       return;
@@ -78,30 +74,24 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
     try {
       dispatch(setLoadingHistories(true));
       lastLoadTimeRef.current = now;
-      const token = await getAccessToken();
-      const historyData = await loadHistoryFromDriveWithToken(token);
-      dispatch(setHistories(historyData?.histories || []));
+      // Chrome 同步会自动加载，无需手动拉取
       hasTriedLoadRef.current = true;
     } catch (err: any) {
       console.error('[SyncHistoryModal] 刷新历史记录失败:', err);
-      const errorMessage = err?.message || '';
-      if (errorMessage.includes('权限不足') || errorMessage.includes('insufficient')) {
-        setError(t('popup_pleaseLoginToUseSync'));
-      }
       hasTriedLoadRef.current = true;
     } finally {
       dispatch(setLoadingHistories(false));
     }
-  }, [isLoggedIn, dispatch, t]);
+  }, [dispatch]);
 
-  // 当登录状态或历史记录变化时，识别当前记录
+  // 当历史记录变化时，识别当前记录
   useEffect(() => {
-    if (isLoggedIn === true && histories.length > 0) {
+    if (histories.length > 0) {
       identifyCurrentRecord();
     } else {
       setCurrentHistoryId(null);
     }
-  }, [isLoggedIn, histories, identifyCurrentRecord]);
+  }, [histories, identifyCurrentRecord]);
 
   // 关闭弹窗时重置状态
   useEffect(() => {
@@ -112,13 +102,10 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
     }
   }, [isOpen]);
 
-  // 打开弹窗或登录状态变化时，自动加载历史记录
-  const prevIsLoggedInRef = useRef<boolean | null>(null);
+  // 打开弹窗时，自动加载历史记录
   const prevIsOpenRef = useRef(false);
   useEffect(() => {
-    const prevIsLoggedIn = prevIsLoggedInRef.current;
     const prevIsOpen = prevIsOpenRef.current;
-    prevIsLoggedInRef.current = isLoggedIn;
     prevIsOpenRef.current = isOpen;
 
     // 重置清空标记（如果历史记录不为空，说明已经重新加载了）
@@ -127,22 +114,20 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
       hasTriedLoadRef.current = false;
     }
 
-    // 打开弹窗且已登录，但历史记录为空时，自动加载
-    const isLoginChanged = prevIsLoggedIn !== true && isLoggedIn === true;
+    // 打开弹窗且历史记录为空时，自动加载
     const isModalJustOpened = !prevIsOpen && isOpen;
     const shouldLoad = isOpen &&
-      isLoggedIn === true &&
       histories.length === 0 &&
       !isLoadingHistories &&
       !isClearing &&
       !isClearedByUserRef.current &&
       !hasTriedLoadRef.current &&
-      (isLoginChanged || isModalJustOpened);
+      isModalJustOpened;
 
     if (shouldLoad) {
       refreshHistory();
     }
-  }, [isOpen, isLoggedIn, histories.length, isLoadingHistories, isClearing, refreshHistory]);
+  }, [isOpen, histories.length, isLoadingHistories, isClearing, refreshHistory]);
 
   // 处理点击外部区域和 ESC 键关闭
   useEffect(() => {
@@ -177,7 +162,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
   }, [isOpen, onClose]);
 
   const handleManualSync = async () => {
-    if (isAnyOperationInProgress || !isLoggedIn) {
+    if (isAnyOperationInProgress) {
       return;
     }
 
@@ -339,7 +324,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
   }, [isAnyOperationInProgress]);
 
   const handleRefreshHistory = async () => {
-    if (isAnyOperationInProgress || !isLoggedIn) {
+    if (isAnyOperationInProgress) {
       return;
     }
 
@@ -394,197 +379,170 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
 
   const content = (
     <div className={isSubPage ? styles.subPageContent : styles.modalContent}>
-      {/* 登录状态检查 */}
-      {(isLoggedIn === null || isChecking) && (
-        <div className={styles.syncSection}>
-          <div className={styles.syncStatus}>
-            <span>{t('popup_checkingLoginStatus')}</span>
+      {/* Chrome 同步始终可用 */}
+      <div className={styles.syncSection}>
+        <div className={styles.allActionsRow}>
+          <div className={styles.actionRow}>
+            <Button
+              variant="primary"
+              size="small"
+              onClick={handleRefreshHistory}
+              disabled={isAnyOperationInProgress}
+              title={t('popup_refresh')}
+              loading={isRefreshing}
+              icon={
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                  <path d="M3 21v-5h5"></path>
+                </svg>
+              }
+            >
+              {t('popup_refresh')}
+            </Button>
+            <Button
+              variant="primary"
+              size="small"
+              onClick={handleManualSync}
+              disabled={isAnyOperationInProgress}
+              title={t('popup_sync')}
+              loading={isSyncing}>
+              {isSyncing ? null : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              )}
+              {t('popup_sync')}
+            </Button>
+          </div>
+          <div className={styles.actionRow}>
+            <Button
+              variant="info"
+              size="small"
+              onClick={handleExport}
+              disabled={isAnyOperationInProgress || histories.length === 0}
+              title={t('popup_export')}
+              loading={isExporting}
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              }>
+              {isExporting ? t('popup_exporting') : t('popup_export')}
+            </Button>
+            <Button
+              variant="info"
+              size="small"
+              onClick={triggerImport}
+              disabled={isAnyOperationInProgress}
+              title={t('popup_import')}
+              loading={isImporting}
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              }>
+              {isImporting ? t('popup_importing') : t('popup_import')}
+            </Button>
+            <Button
+              variant="danger"
+              size="small"
+              onClick={handleClearAll}
+              disabled={isAnyOperationInProgress || histories.length === 0}
+              title={t('popup_clearAll')}
+              loading={isClearing}
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              }>
+              {isClearing ? t('popup_clearing') : t('popup_clearAll')}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              style={{ display: 'none' }}
+              onChange={handleImport}
+            />
           </div>
         </div>
-      )}
+        {error && <div className={styles.error}>{error}</div>}
+      </div>
 
-      {isLoggedIn === false && (
-        <div className={styles.syncSection}>
-          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: '16px', marginBottom: '12px', fontWeight: '500' }}>
-              {t('popup_pleaseLoginGoogle')}
-            </div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary, #666)', lineHeight: '1.6' }}>
-              {t('popup_pleaseLoginToUseSync')}
-              <br />
-              {t('popup_loginDriveSync')}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isLoggedIn === true && (
-        <>
-          <div className={styles.syncSection}>
-            <div className={styles.allActionsRow}>
-              <div className={styles.actionRow}>
-                <Button
-                  variant="primary"
-                  size="small"
-                  onClick={handleRefreshHistory}
-                  disabled={isAnyOperationInProgress || !isLoggedIn}
-                  title={t('popup_refresh')}
-                  loading={isRefreshing}
-                  icon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                      <path d="M21 3v5h-5"></path>
-                      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                      <path d="M3 21v-5h5"></path>
-                    </svg>
-                  }
-                >
-                  {t('popup_refresh')}
-                </Button>
-                <Button
-                  variant="primary"
-                  size="small"
-                  onClick={handleManualSync}
-                  disabled={isAnyOperationInProgress || isLoggedIn !== true}
-                  title={t('popup_sync')}
-                  loading={isSyncing}>
-                  {isSyncing ? null : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                  )}
-                  {t('popup_sync')}
-                </Button>
-              </div>
-              <div className={styles.actionRow}>
-                <Button
-                  variant="info"
-                  size="small"
-                  onClick={handleExport}
-                  disabled={isAnyOperationInProgress || histories.length === 0}
-                  title={t('popup_export')}
-                  loading={isExporting}
-                  icon={
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                  }>
-                  {isExporting ? t('popup_exporting') : t('popup_export')}
-                </Button>
-                <Button
-                  variant="info"
-                  size="small"
-                  onClick={triggerImport}
-                  disabled={isAnyOperationInProgress}
-                  title={t('popup_import')}
-                  loading={isImporting}
-                  icon={
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                  }>
-                  {isImporting ? t('popup_importing') : t('popup_import')}
-                </Button>
-                <Button
-                  variant="danger"
-                  size="small"
-                  onClick={handleClearAll}
-                  disabled={isAnyOperationInProgress || histories.length === 0}
-                  title={t('popup_clearAll')}
-                  loading={isClearing}
-                  icon={
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  }>
-                  {isClearing ? t('popup_clearing') : t('popup_clearAll')}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json"
-                  style={{ display: 'none' }}
-                  onChange={handleImport}
-                />
-              </div>
-            </div>
-            {error && <div className={styles.error}>{error}</div>}
-          </div>
-
-          <div className={styles.historySection}>
-            {histories.length === 0 ? (
-              <div className={styles.emptyHistory}>{t('popup_noHistory')}</div>
-            ) : (
-              <div className={styles.historyList}>
-                {histories.slice(0, 10).map((history) => {
-                  const isCurrent = currentHistoryId === history.id;
-                  return (
-                    <div
-                      key={history.id}
-                      className={`${styles.historyItem} ${isCurrent ? styles.historyItemCurrent : ''
-                        }`}>
-                      <div className={styles.historyInfo}>
-                        <div className={styles.historyType}>
-                          {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
-                          {isCurrent && (
-                            <span className={styles.currentBadge}> {t('popup_current')}</span>
-                          )}
-                        </div>
-                        <div className={styles.historyTime}>
-                          {formatHistoryTime(history.updatedAt)}
-                        </div>
-                      </div>
-                      {!isCurrent && (
-                        <div className={styles.historyActions}>
-                          <Button
-                            variant="primary"
-                            size="small"
-                            onClick={() => handleRestore(history.id)}
-                            disabled={isAnyOperationInProgress}
-                            title={t('popup_restore')}
-                            loading={isRestoring === history.id}
-                            icon={
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                                <path d="M21 3v5h-5"></path>
-                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                                <path d="M3 21v-5h5"></path>
-                              </svg>
-                            }>
-                            {isRestoring === history.id ? t('popup_restoring') : t('popup_restore')}
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="small"
-                            onClick={() => handleDelete(history.id)}
-                            disabled={isAnyOperationInProgress}
-                            title={t('popup_delete')}
-                            loading={isDeleting === history.id}
-                            icon={
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                              </svg>
-                            }>
-                            {isDeleting === history.id ? t('popup_deleting') : t('popup_delete')}
-                          </Button>
-                        </div>
+      <div className={styles.historySection}>
+        {histories.length === 0 ? (
+          <div className={styles.emptyHistory}>{t('popup_noHistory')}</div>
+        ) : (
+          <div className={styles.historyList}>
+            {histories.slice(0, 10).map((history) => {
+              const isCurrent = currentHistoryId === history.id;
+              return (
+                <div
+                  key={history.id}
+                  className={`${styles.historyItem} ${isCurrent ? styles.historyItemCurrent : ''
+                    }`}>
+                  <div className={styles.historyInfo}>
+                    <div className={styles.historyType}>
+                      {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      {isCurrent && (
+                        <span className={styles.currentBadge}> {t('popup_current')}</span>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                    <div className={styles.historyTime}>
+                      {formatHistoryTime(history.updatedAt)}
+                    </div>
+                  </div>
+                  {!isCurrent && (
+                    <div className={styles.historyActions}>
+                      <Button
+                        variant="primary"
+                        size="small"
+                        onClick={() => handleRestore(history.id)}
+                        disabled={isAnyOperationInProgress}
+                        title={t('popup_restore')}
+                        loading={isRestoring === history.id}
+                        icon={
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M3 21v-5h5"></path>
+                          </svg>
+                        }>
+                        {isRestoring === history.id ? t('popup_restoring') : t('popup_restore')}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="small"
+                        onClick={() => handleDelete(history.id)}
+                        disabled={isAnyOperationInProgress}
+                        title={t('popup_delete')}
+                        loading={isDeleting === history.id}
+                        icon={
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          </svg>
+                        }>
+                        {isDeleting === history.id ? t('popup_deleting') : t('popup_delete')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 

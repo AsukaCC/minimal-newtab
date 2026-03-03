@@ -1,23 +1,17 @@
 /**
- * 用户信息 Slice - 管理登录状态和历史记录
+ * 用户信息 Slice - 管理同步状态和历史记录
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import dayjs from 'dayjs';
-import { SyncHistory } from '../../services/syncService';
+import { SyncHistory } from '../../services/chromeSyncService';
 
 /**
  * 用户信息状态接口
  */
 export interface UserInfoState {
-  // 登录状态
-  isLoggedIn: boolean | null; // null 表示检查中，true 表示已登录，false 表示未登录
-  isChecking: boolean; // 是否正在检查登录状态
-  
-  // 用户账户信息
-  userEmail: string | null; // 登录用户的邮箱
-  userName: string | null; // 登录用户的用户名
-  userAvatar: string | null; // 登录用户的头像 URL
+  // 同步状态（Chrome 同步始终可用）
+  isSyncEnabled: boolean; // Chrome 同步是否启用
   
   // 历史记录
   histories: SyncHistory[]; // 同步历史记录列表
@@ -29,11 +23,7 @@ export interface UserInfoState {
  * 初始状态
  */
 const initialState: UserInfoState = {
-  isLoggedIn: null,
-  isChecking: false,
-  userEmail: null,
-  userName: null,
-  userAvatar: null,
+  isSyncEnabled: true, // Chrome 同步默认启用
   histories: [],
   isLoadingHistories: false,
   historiesLastUpdated: null,
@@ -47,59 +37,16 @@ const userInfoSlice = createSlice({
   initialState,
   reducers: {
     /**
-     * 开始检查登录状态
+     * 设置同步启用状态
      */
-    setChecking: (state, action: PayloadAction<boolean>) => {
-      state.isChecking = action.payload;
-    },
-
-    /**
-     * 设置登录状态
-     */
-    setLoggedIn: (state, action: PayloadAction<boolean | null>) => {
-      state.isLoggedIn = action.payload;
-      state.isChecking = false;
-      
-      // 如果登出，清空历史记录和用户信息
-      if (action.payload === false) {
-        state.histories = [];
-        state.historiesLastUpdated = null;
-        state.userEmail = null;
-        state.userName = null;
-        state.userAvatar = null;
-      }
-    },
-
-    /**
-     * 设置用户邮箱
-     */
-    setUserEmail: (state, action: PayloadAction<string | null>) => {
-      state.userEmail = action.payload;
-    },
-
-    /**
-     * 设置用户头像
-     */
-    setUserAvatar: (state, action: PayloadAction<string | null>) => {
-      state.userAvatar = action.payload;
-    },
-
-    /**
-     * 设置用户名
-     */
-    setUserName: (state, action: PayloadAction<string | null>) => {
-      state.userName = action.payload;
+    setSyncEnabled: (state, action: PayloadAction<boolean>) => {
+      state.isSyncEnabled = action.payload;
     },
 
     /**
      * 重置用户信息状态
      */
     resetUserInfo: (state) => {
-      state.isLoggedIn = null;
-      state.isChecking = false;
-      state.userEmail = null;
-      state.userName = null;
-      state.userAvatar = null;
       state.histories = [];
       state.isLoadingHistories = false;
       state.historiesLastUpdated = null;
@@ -127,7 +74,7 @@ const userInfoSlice = createSlice({
     addHistory: (state, action: PayloadAction<SyncHistory>) => {
       // 添加到开头
       state.histories.unshift(action.payload);
-      // 限制数量（最多4条）
+      // 限制数量（最多 4 条）
       state.histories = state.histories.slice(0, 4);
       state.historiesLastUpdated = dayjs().valueOf();
     },
@@ -163,11 +110,7 @@ const userInfoSlice = createSlice({
 
 // 导出 actions
 export const {
-  setChecking,
-  setLoggedIn,
-  setUserEmail,
-  setUserName,
-  setUserAvatar,
+  setSyncEnabled,
   resetUserInfo,
   setLoadingHistories,
   setHistories,
