@@ -2,7 +2,7 @@
 
 <div align="center">
 
-一个极简、高效的新标签页 Chrome 扩展，使用 React + Vite 构建，支持自定义搜索、主题设置和 Google Drive 云端同步。
+一个极简、高效的新标签页 Chrome 扩展，使用 React + Vite 构建，支持自定义搜索、主题设置和云端同步。
 
 ✨ [在线体验](#) · 📖 [使用文档](#) · 🐛 [问题反馈](#)
 
@@ -17,7 +17,7 @@
 - 🎨 **主题切换** - 现代化 UI 设计，支持多主题切换
 - 🔍 **多搜索引擎** - 支持 Google、Bing、百度等多种搜索引擎
 - 🌐 **国际化** - 支持中文/英文多语言
-- ☁️ **云端同步** - Google Drive 配置和历史记录同步
+- ☁️ **云端同步** - Firebase 配置和历史记录同步
 - 🎯 **极简设计** - 专注新标签页核心体验，无冗余功能
 
 ## 项目结构
@@ -52,6 +52,7 @@
 ### 1. 获取项目
 
 **方式一：Git 克隆**
+
 ```bash
 git clone [项目仓库地址]
 cd minimal-newtab
@@ -73,6 +74,7 @@ npm run dev
 ```
 
 开发模式会：
+
 1. 自动监听文件变化并重新构建
 2. 自动复制 `manifest.json` 到 `dist` 目录
 3. 在 Chrome 中加载扩展后，修改代码会自动重建，刷新扩展即可看到更新
@@ -95,64 +97,79 @@ npm run build
 构建完成后，`dist` 目录就是可以打包的扩展文件。
 
 > **提示：**
+>
 > - `npm run dev` - 开发模式，代码**不压缩**，构建速度快，便于调试
 > - `npm run build` - 生产模式，代码**会压缩**，文件体积小，适合发布
 
 ## 配置说明
 
-### OAuth2 客户端 ID 配置
+### 环境变量配置
 
-项目使用 Google OAuth2 进行身份验证和 Google Drive API 访问。需要配置客户端 ID 才能正常使用同步功能。
+项目使用 Firebase 进行云端同步，需要配置必要的环境变量。
 
-#### 配置步骤
+#### 1. 复制环境配置文件
 
-1. **创建 Google Cloud 项目**
-   - 访问 [Google Cloud Console](https://console.cloud.google.com/)
-   - 创建新项目或选择现有项目
+```bash
+cp .env.example .env
+```
 
-2. **启用必要的 API**
-   - 在 API 和服务中启用以下 API：
-     - Google Drive API
-     - Google Identity API
+#### 2. 配置扩展密钥
 
-3. **创建 OAuth2 客户端凭据**
-   - 进入"API 和服务" → "凭据"
-   - 点击"创建凭据" → "OAuth 客户端 ID"
-   - 应用类型选择"Chrome 应用"
-   - 获取扩展 ID：
-     - 在 Chrome 中加载扩展后，访问 `chrome://extensions/`
-     - 找到你的扩展，复制"ID"（例如：`abcdefghijklmnopqrstuvwxyz123456`）
-   - 在"授权重定向 URI"中配置：
-     ```
-     chrome-extension://[你的扩展ID]/
-     ```
-     例如：`chrome-extension://abcdefghijklmnopqrstuvwxyz123456/`
+在 `.env` 文件中配置你的 Chrome 扩展密钥：
 
-4. **配置 manifest.json**
-   - 打开 `src/manifest.json`
-   - 找到 `oauth2.client_id` 字段
-   - 将获取到的客户端 ID 填入：
-     ```json
-     "oauth2": {
-       "client_id": "你的客户端ID.apps.googleusercontent.com",
-       ...
-     }
-     ```
+```bash
+VITE_CHROME_EXTENSION_KEY=your-extension-key
+```
 
-5. **开发环境与生产环境**
-   - 建议创建两个 OAuth2 客户端：
-     - 一个用于开发环境（本地测试）
-     - 一个用于生产环境（发布版本）
-   - 在 `manifest.json` 中可以通过注释字段记录两个环境的客户端 ID：
-     ```json
-     "_comment_client_id_production": "生产环境客户端 ID",
-     "_comment_client_id_dev": "开发环境客户端 ID"
-     ```
+**获取扩展密钥：**
+
+1. 在 Chrome 中加载扩展后，访问 `chrome://extensions/`
+2. 找到你的扩展，复制"ID"（例如：`abcdefghijklmnopqrstuvwxyz123456`）
+3. 将该 ID 填入 `.env` 文件的 `VITE_CHROME_EXTENSION_KEY`
+
+#### 3. Firebase 配置
+
+> 注意：Firebase 配置文件 `src/services/firebaseConfig.ts` 包含敏感信息，已被 `.gitignore` 忽略。
+
+你需要创建自己的 Firebase 项目并配置文件：
+
+1. **创建 Firebase 项目**
+   - 访问 [Firebase Console](https://console.firebase.google.com/)
+   - 创建新项目
+
+2. **启用必要的服务**
+   - Authentication（身份验证）
+   - Firestore Database（数据库）
+
+3. **创建配置文件**
+   - 在 Firebase 控制台中注册 Web 应用
+   - 复制 Firebase 配置信息
+   - 创建 `src/services/firebaseConfig.ts` 文件：
+
+```typescript
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: 'your-api-key',
+  authDomain: 'your-auth-domain',
+  projectId: 'your-project-id',
+  storageBucket: 'your-storage-bucket',
+  messagingSenderId: 'your-sender-id',
+  appId: 'your-app-id',
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+```
 
 > **注意事项：**
-> - 客户端 ID 是敏感信息，不要提交到公开仓库
-> - 确保授权重定向 URI 与扩展 ID 完全匹配
-> - 修改客户端 ID 后需要重新构建并重新加载扩展
+>
+> - Firebase 配置文件包含敏感信息，不要提交到公开仓库
+> - 建议分别为开发环境和生产环境创建不同的 Firebase 项目
+> - 修改配置后需要重新构建并重新加载扩展
 
 ## 开发说明
 
@@ -188,6 +205,7 @@ npm run build
 - **TypeScript** - 类型支持
 - **Vite** - 构建工具
 - **CSS Modules** - 样式模块化
+- **Firebase** - 云端同步和身份验证
 
 ### 使用 Chrome API
 
