@@ -9,10 +9,10 @@ interface SyncHistorySettingProps {
 
 const SyncHistorySetting: React.FC<SyncHistorySettingProps> = ({ onOpenHistory }) => {
   const { t } = useI18n();
-  const isLoggedIn = useAppSelector((state) => state.userInfo.isLoggedIn);
+  const isSyncEnabled = useAppSelector((state) => state.userInfo.isSyncEnabled);
 
-  // 只在登录后显示
-  if (isLoggedIn !== true) {
+  // 只在同步启用时显示
+  if (!isSyncEnabled) {
     return null;
   }
 
