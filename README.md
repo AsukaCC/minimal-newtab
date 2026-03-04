@@ -17,7 +17,7 @@
 - 🎨 **主题切换** - 现代化 UI 设计，支持多主题切换
 - 🔍 **多搜索引擎** - 支持 Google、Bing、百度等多种搜索引擎
 - 🌐 **国际化** - 支持中文/英文多语言
-- ☁️ **云端同步** - Firebase 配置和历史记录同步
+- ☁️ **云端同步** - Chrome 原生同步，跨设备自动同步
 - 🎯 **极简设计** - 专注新标签页核心体验，无冗余功能
 
 ## 项目结构
@@ -105,7 +105,7 @@ npm run build
 
 ### 环境变量配置
 
-项目使用 Firebase 进行云端同步，需要配置必要的环境变量。
+项目使用 Chrome 原生同步服务，仅需配置扩展密钥。
 
 #### 1. 复制环境配置文件
 
@@ -127,49 +127,19 @@ VITE_CHROME_EXTENSION_KEY=your-extension-key
 2. 找到你的扩展，复制"ID"（例如：`abcdefghijklmnopqrstuvwxyz123456`）
 3. 将该 ID 填入 `.env` 文件的 `VITE_CHROME_EXTENSION_KEY`
 
-#### 3. Firebase 配置
+#### 3. 同步功能说明
 
-> 注意：Firebase 配置文件 `src/services/firebaseConfig.ts` 包含敏感信息，已被 `.gitignore` 忽略。
+项目使用 Chrome 原生同步服务 (`chrome.storage.sync`)，具有以下特点：
 
-你需要创建自己的 Firebase 项目并配置文件：
-
-1. **创建 Firebase 项目**
-   - 访问 [Firebase Console](https://console.firebase.google.com/)
-   - 创建新项目
-
-2. **启用必要的服务**
-   - Authentication（身份验证）
-   - Firestore Database（数据库）
-
-3. **创建配置文件**
-   - 在 Firebase 控制台中注册 Web 应用
-   - 复制 Firebase 配置信息
-   - 创建 `src/services/firebaseConfig.ts` 文件：
-
-```typescript
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: 'your-api-key',
-  authDomain: 'your-auth-domain',
-  projectId: 'your-project-id',
-  storageBucket: 'your-storage-bucket',
-  messagingSenderId: 'your-sender-id',
-  appId: 'your-app-id',
-};
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-```
+- ✅ **自动同步** - 使用 Chrome 账户自动同步，无需额外登录
+- ✅ **跨设备同步** - 数据自动在用户的 Chrome 设备间同步（最多 100KB）
+- ✅ **离线可用** - 离线可用，网络恢复后自动同步
+- ✅ **无需配置** - 无需配置 Firebase 或其他第三方服务
 
 > **注意事项：**
->
-> - Firebase 配置文件包含敏感信息，不要提交到公开仓库
-> - 建议分别为开发环境和生产环境创建不同的 Firebase 项目
-> - 修改配置后需要重新构建并重新加载扩展
+> - 确保在 Chrome 浏览器中登录了 Google 账户
+> - 需要在 Chrome 设置中开启同步功能
+> - 扩展密钥用于标识扩展身份，必须正确配置
 
 ## 开发说明
 
@@ -205,7 +175,7 @@ export const db = getFirestore(app);
 - **TypeScript** - 类型支持
 - **Vite** - 构建工具
 - **CSS Modules** - 样式模块化
-- **Firebase** - 云端同步和身份验证
+- **Chrome Storage Sync** - 云端同步
 
 ### 使用 Chrome API
 
