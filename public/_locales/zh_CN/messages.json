@@ -19,6 +19,9 @@
   "settings_languageEnUS": {
     "message": "English"
   },
+  "settings_languageJaJP": {
+    "message": "日本語"
+  },
   "settings_themeColor": {
     "message": "主题色"
   },

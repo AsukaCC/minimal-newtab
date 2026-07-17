@@ -17,7 +17,7 @@ export interface ConfigState {
   chooseEngine: string; // 选择的搜索引擎 key
   isDirectLink: boolean; // true: 当前标签页打开；false: 新标签页打开
   themeColor: string; // 主题色，例如 '#667eea'
-  language: string; // 语言设置，'zh-CN' 或 'en-US'
+  language: string; // 语言设置，'zh-CN'、'en-US' 或 'ja-JP'
   navItems?: NavItem[]; // 导航栏项目列表
   showNavBar?: boolean; // 是否显示底部导航栏
   navBarThemeColor?: string; // 底部导航栏图标主题色
@@ -26,7 +26,7 @@ export interface ConfigState {
 }
 
 /**
- * 检测Chrome浏览器语言，默认返回中文或英文
+ * 检测Chrome浏览器语言，默认返回中文、英文或日语
  * 优先使用 chrome.i18n.getUILanguage() 获取Chrome浏览器界面语言
  * 如果不可用，则回退到 navigator.language
  */
@@ -47,9 +47,12 @@ function getSystemLanguage(): string {
       navigator.language || (navigator as any).userLanguage || 'zh-CN';
   }
 
-  // 如果浏览器语言是中文相关，返回 zh-CN，否则返回 en-US
-  if (browserLang.startsWith('zh')) {
+  const normalizedLang = browserLang.toLowerCase();
+  if (normalizedLang.startsWith('zh')) {
     return 'zh-CN';
+  }
+  if (normalizedLang.startsWith('ja')) {
+    return 'ja-JP';
   }
   return 'en-US';
 }

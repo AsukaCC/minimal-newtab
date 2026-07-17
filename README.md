@@ -137,7 +137,7 @@ npm run build
 - **添加新页面**：在 `src` 目录创建 HTML 和组件文件，然后在 `vite.config.ts` 的 `rollupOptions.input` 中添加入口点
 - **修改开发脚本**：编辑 `scripts/dev.js`（开发模式）或 `scripts/build.js`（生产构建）
 - **修改样式**：项目使用 CSS Modules，样式文件位于 `src/components` 和 `src/styles` 目录
-- **添加国际化文本**：编辑 `src/i18n/locales/zh-CN.ts` 和 `src/i18n/locales/en-US.ts`
+- **添加国际化文本**：编辑 `public/_locales/zh_CN`、`public/_locales/en` 和 `public/_locales/ja` 中的 `messages.json`
 
 ### 页面说明
 

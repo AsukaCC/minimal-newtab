@@ -1,4 +1,4 @@
-export type Language = 'zh-CN' | 'en-US';
+export type Language = 'zh-CN' | 'en-US' | 'ja-JP';
 export type I18nSubstitutions = string | string[];
 
 type MessageEntry = {
@@ -9,6 +9,7 @@ type MessageEntry = {
 const languageToLocale: Record<Language, string> = {
   'zh-CN': 'zh_CN',
   'en-US': 'en',
+  'ja-JP': 'ja',
 };
 
 const localeCache = new Map<string, Record<string, MessageEntry>>();
@@ -25,7 +26,14 @@ export function getUILanguage(): string {
 }
 
 export function normalizeLanguage(lang: string): Language {
-  return lang?.startsWith('zh') ? 'zh-CN' : 'en-US';
+  const normalizedLang = lang?.toLowerCase();
+  if (normalizedLang?.startsWith('zh')) {
+    return 'zh-CN';
+  }
+  if (normalizedLang?.startsWith('ja')) {
+    return 'ja-JP';
+  }
+  return 'en-US';
 }
 
 export async function loadLocaleMessages(language: Language): Promise<void> {

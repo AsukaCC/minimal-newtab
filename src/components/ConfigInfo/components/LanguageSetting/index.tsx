@@ -18,6 +18,7 @@ const LanguageSetting: React.FC<LanguageSettingProps> = ({ onSelectOpenChange })
   const languageOptions: SelectOption[] = [
     { value: 'zh-CN', label: t('settings_languageZhCN') },
     { value: 'en-US', label: t('settings_languageEnUS') },
+    { value: 'ja-JP', label: t('settings_languageJaJP') },
   ];
 
   const handleLanguageChange = (lang: string) => {
