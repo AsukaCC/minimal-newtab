@@ -1,8 +1,8 @@
 /* PC/平板端样式（默认） */
 .searchContainer {
-  width: 22rem;
-  min-width: 22rem;
-  max-width: 22rem;
+  width: min(35rem, calc(100vw - 2rem));
+  min-width: 0;
+  max-width: 35rem;
   height: 5rem;
   background-color: var(--glass-bg-strong);
   border-radius: var(--radius-full);
@@ -11,22 +11,16 @@
   padding: var(--spacing-md);
   align-items: center;
   box-shadow: var(--glass-shadow);
-  transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    scale 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--glass-border);
   transform-origin: center;
-  backdrop-filter: blur(var(--glass-blur-strong));
-  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  backface-visibility: hidden;
 }
 
 .searchContainer:focus-within {
   box-shadow: var(--glass-shadow);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px) scale(1.015);
   border-color: var(--glass-border);
-  width: 35rem;
-  max-width: 35rem;
 }
 
 .enginesContainer {
@@ -91,20 +85,9 @@
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 101;
-  animation: slideDown 0.2s ease;
+  transform-origin: top left;
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .engineItem {
@@ -243,7 +226,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 100;
-  animation: slideDown 0.2s ease;
+  transform-origin: top center;
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   margin-top: var(--spacing-xs);

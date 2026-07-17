@@ -65,7 +65,7 @@
     "message": "配置导航栏网站"
   },
   "settings_syncHistory": {
-    "message": "同步历史"
+    "message": "本地配置历史"
   },
   "settings_navBarResetConfirm": {
     "message": "确定要重置为默认列表吗？"
@@ -148,6 +148,69 @@
   "settings_websiteManagement": {
     "message": "网站管理"
   },
+  "settings_aiWebsiteLibrary": {
+    "message": "内置网站库"
+  },
+  "settings_aiWebsiteLibraryDesc": {
+    "message": "收录国内外常用站点，图标已内置到扩展"
+  },
+  "settings_searchAiWebsites": {
+    "message": "搜索内置网站"
+  },
+  "settings_aiCategoryAll": {
+    "message": "全部"
+  },
+  "settings_aiCategoryAssistant": {
+    "message": "助手"
+  },
+  "settings_aiCategorySearch": {
+    "message": "搜索"
+  },
+  "settings_aiCategoryCreative": {
+    "message": "创作"
+  },
+  "settings_aiCategoryDeveloper": {
+    "message": "开发"
+  },
+  "settings_noMatchingAiWebsites": {
+    "message": "没有匹配的内置网站"
+  },
+  "settings_siteCategoryAi": {
+    "message": "AI"
+  },
+  "settings_siteCategoryVideo": {
+    "message": "视频"
+  },
+  "settings_siteCategoryMusic": {
+    "message": "音乐"
+  },
+  "settings_siteCategoryTechnology": {
+    "message": "技术"
+  },
+  "settings_siteCategoryNews": {
+    "message": "新闻"
+  },
+  "settings_currentWebsites": {
+    "message": "当前导航"
+  },
+  "settings_added": {
+    "message": "已添加"
+  },
+  "settings_uploadSvgIcon": {
+    "message": "上传自定义 SVG 图标"
+  },
+  "settings_removeCustomIcon": {
+    "message": "移除自定义图标"
+  },
+  "settings_svgIconFileType": {
+    "message": "仅支持 .svg 格式的图标文件"
+  },
+  "settings_invalidSvgIcon": {
+    "message": "SVG 图标无效或包含不支持的内容"
+  },
+  "settings_svgIconTooLarge": {
+    "message": "SVG 图标清理后不能超过 8 KB，请先简化路径"
+  },
   "settings_manageSites": {
     "message": "管理网站列表"
   },
@@ -212,10 +275,10 @@
     "message": "欢迎使用"
   },
   "popup_syncTitle": {
-    "message": "同步"
+    "message": "配置同步"
   },
   "popup_syncDescription": {
-    "message": "配置管理"
+    "message": "当前配置跨设备同步，历史记录保存在本机"
   },
   "popup_loginSubtitle": {
     "message": "使用 Google 账号登录以同步您的数据"
@@ -263,10 +326,10 @@
     "message": "隐藏同步记录"
   },
   "popup_syncHistory": {
-    "message": "同步记录"
+    "message": "本地配置历史"
   },
   "popup_noHistory": {
-    "message": "暂无同步记录"
+    "message": "暂无本地配置历史"
   },
   "popup_historyTypeUpload": {
     "message": "上传"
@@ -320,7 +383,7 @@
     "message": "删除失败"
   },
   "popup_confirmDelete": {
-    "message": "确定要删除这条同步记录吗？"
+    "message": "确定要删除这条本地配置历史吗？"
   },
   "popup_export": {
     "message": "导出"
@@ -369,7 +432,7 @@
     "message": "清空失败"
   },
   "popup_confirmClearAll": {
-    "message": "确定要清空所有同步记录吗？此操作不可恢复。"
+    "message": "确定要清空所有本地配置历史吗？当前云端配置不会被删除，下次同步会重新创建本设备记录。"
   },
   "popup_refresh": {
     "message": "拉取"
@@ -382,6 +445,15 @@
   },
   "popup_current": {
     "message": "当前"
+  },
+  "popup_thisDevice": {
+    "message": "本设备"
+  },
+  "popup_otherDevice": {
+    "message": "其他设备"
+  },
+  "popup_legacyDevice": {
+    "message": "旧版记录"
   },
   "popup_loginCancelled": {
     "message": "登录被取消"
@@ -454,5 +526,22 @@
   },
   "popup_chromeSync": {
     "message": "Chrome 同步"
+  },
+  "popup_syncStorageReady": {
+    "message": "同步存储可用（已用 $bytes$ 字节）",
+    "placeholders": {
+      "bytes": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_syncStorageUnavailable": {
+    "message": "同步存储不可用"
+  },
+  "popup_checkingSyncStorage": {
+    "message": "正在检查同步存储..."
+  },
+  "popup_syncManagedByChrome": {
+    "message": "跨设备传输由 Chrome 设置中的账户同步开关控制。"
   }
 }

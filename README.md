@@ -31,7 +31,6 @@
 │   ├── newtab.html            # New Tab 页面 HTML
 │   ├── newtab/                # New Tab 页面组件
 │   ├── background.ts          # Service Worker 后台脚本
-│   ├── content.ts             # Content Script 内容脚本
 │   ├── components/            # React 组件
 │   ├── store/                 # Redux 状态管理
 │   ├── services/              # 服务层（同步服务等）
@@ -103,43 +102,22 @@ npm run build
 
 ## 配置说明
 
-### 环境变量配置
+### 同步功能说明
 
-项目使用 Chrome 原生同步服务，仅需配置扩展密钥。
-
-#### 1. 复制环境配置文件
-
-```bash
-cp .env.example .env
-```
-
-#### 2. 配置扩展密钥
-
-在 `.env` 文件中配置你的 Chrome 扩展密钥：
-
-```bash
-VITE_CHROME_EXTENSION_KEY=your-extension-key
-```
-
-**获取扩展密钥：**
-
-1. 在 Chrome 中加载扩展后，访问 `chrome://extensions/`
-2. 找到你的扩展，复制"ID"（例如：`abcdefghijklmnopqrstuvwxyz123456`）
-3. 将该 ID 填入 `.env` 文件的 `VITE_CHROME_EXTENSION_KEY`
-
-#### 3. 同步功能说明
+项目使用 Chrome 原生同步服务。清单已包含商店版公开密钥，所有构建固定使用扩展 ID `geleojmmkfddmlgenkjdkdlngplihgnj` 和相同的同步命名空间。
 
 项目使用 Chrome 原生同步服务 (`chrome.storage.sync`)，具有以下特点：
 
 - ✅ **自动同步** - 使用 Chrome 账户自动同步，无需额外登录
-- ✅ **跨设备同步** - 数据自动在用户的 Chrome 设备间同步（最多 100KB）
+- ✅ **跨设备同步** - 当前配置按小于 8KB 的分块同步，历史记录仅保存在本机
 - ✅ **离线可用** - 离线可用，网络恢复后自动同步
 - ✅ **无需配置** - 无需配置 Firebase 或其他第三方服务
 
 > **注意事项：**
 > - 确保在 Chrome 浏览器中登录了 Google 账户
 > - 需要在 Chrome 设置中开启同步功能
-> - 扩展密钥用于标识扩展身份，必须正确配置
+> - Chrome 未向扩展开放账户同步开关查询 API；应用只能检测同步存储是否可读写
+> - 同一 Chrome 配置中请停用商店版后再加载本地 `dist`，两个版本使用相同扩展 ID
 
 ## 开发说明
 
@@ -174,6 +152,7 @@ VITE_CHROME_EXTENSION_KEY=your-extension-key
 - **Redux Toolkit** - 状态管理
 - **TypeScript** - 类型支持
 - **Vite** - 构建工具
+- **Manifest V3** - Chrome 扩展平台版本
 - **CSS Modules** - 样式模块化
 - **Chrome Storage Sync** - 云端同步
 

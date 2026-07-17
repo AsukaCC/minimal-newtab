@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useI18n } from '../../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
-import { setHistories, setLoadingHistories } from '../../store';
-import { manualSyncConfig, restoreFromHistory, deleteSyncHistory, exportSyncHistory, importSyncHistory, clearAllSyncHistory, findHistoryByConfigId, getLocalConfig, resetAutoSyncTimer } from '../../services/chromeSyncService';
+import { setLoadingHistories } from '../../store';
+import { manualSyncConfig, restoreFromHistory, deleteSyncHistory, exportSyncHistory, importSyncHistory, clearAllSyncHistory, findHistoryByConfigId, getDeviceSyncIdentity, getLocalConfig, getSyncHistory, getSyncStorageDiagnostics, resetAutoSyncTimer } from '../../services/chromeSyncService';
+import type { SyncStorageDiagnostics } from '../../services/chromeStorageRepository';
 import dayjs from 'dayjs';
 import styles from './index.module.css';
 import Button from '../Button';
@@ -28,7 +29,9 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
   const [isImporting, setIsImporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [syncDiagnostics, setSyncDiagnostics] = useState<SyncStorageDiagnostics | null>(null);
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   // 标记是否是用户主动清空，避免清空后触发自动刷新
@@ -61,10 +64,8 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
     }
   }, [histories]);
 
-  // 从云端拉取历史记录（Chrome 同步自动工作）
+  // 从 chrome.storage.local 重新读取历史记录
   const refreshHistory = useCallback(async () => {
-    // Chrome 同步始终可用，无需检查登录状态
-
     // 防止频繁请求：如果距离上次请求不到 2 秒，跳过
     const now = dayjs().valueOf();
     if (now - lastLoadTimeRef.current < 2000) {
@@ -74,7 +75,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
     try {
       dispatch(setLoadingHistories(true));
       lastLoadTimeRef.current = now;
-      // Chrome 同步会自动加载，无需手动拉取
+      await getSyncHistory(true);
       hasTriedLoadRef.current = true;
     } catch (err: any) {
       console.error('[SyncHistoryModal] 刷新历史记录失败:', err);
@@ -83,6 +84,24 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
       dispatch(setLoadingHistories(false));
     }
   }, [dispatch]);
+
+  const refreshSyncDiagnostics = useCallback(async () => {
+    const diagnostics = await getSyncStorageDiagnostics();
+    setSyncDiagnostics(diagnostics);
+    if (!diagnostics.available) {
+      setCurrentDeviceId(null);
+      return;
+    }
+    try {
+      setCurrentDeviceId((await getDeviceSyncIdentity()).deviceId);
+    } catch {
+      setCurrentDeviceId(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) void refreshSyncDiagnostics();
+  }, [isOpen, refreshSyncDiagnostics]);
 
   // 当历史记录变化时，识别当前记录
   useEffect(() => {
@@ -178,6 +197,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
         resetAutoSyncTimer();
         await refreshHistory();
       }
+      await refreshSyncDiagnostics();
     } catch (err: any) {
       setError(err.message || t('popup_syncFailed'));
     } finally {
@@ -379,8 +399,27 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
 
   const content = (
     <div className={isSubPage ? styles.subPageContent : styles.modalContent}>
-      {/* Chrome 同步始终可用 */}
       <div className={styles.syncSection}>
+        <div className={styles.syncDiagnostics}>
+          <div className={styles.syncStatus}>
+            <span
+              className={`${styles.statusDot} ${
+                syncDiagnostics?.available ? styles.statusDotSuccess : styles.statusDotNotSynced
+              }`}
+            />
+            <span>
+              {syncDiagnostics
+                ? syncDiagnostics.available
+                  ? t(
+                      'popup_syncStorageReady',
+                      `${syncDiagnostics.bytesInUse}/${syncDiagnostics.quotaBytes}`,
+                    )
+                  : t('popup_syncStorageUnavailable')
+                : t('popup_checkingSyncStorage')}
+            </span>
+          </div>
+          <p className={styles.syncHint}>{t('popup_syncManagedByChrome')}</p>
+        </div>
         <div className={styles.allActionsRow}>
           <div className={styles.actionRow}>
             <Button
@@ -405,7 +444,7 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
               variant="primary"
               size="small"
               onClick={handleManualSync}
-              disabled={isAnyOperationInProgress}
+              disabled={isAnyOperationInProgress || syncDiagnostics?.available === false}
               title={t('popup_sync')}
               loading={isSyncing}>
               {isSyncing ? null : (
@@ -493,6 +532,19 @@ const SyncHistoryModal: React.FC<SyncHistoryModalProps> = ({ isOpen, onClose, is
                   <div className={styles.historyInfo}>
                     <div className={styles.historyType}>
                       {dayjs(history.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      <span
+                        className={`${styles.deviceBadge} ${
+                          history.deviceId === currentDeviceId
+                            ? styles.deviceBadgeCurrent
+                            : ''
+                        }`}
+                      >
+                        {!history.deviceId
+                          ? t('popup_legacyDevice')
+                          : history.deviceId === currentDeviceId
+                            ? t('popup_thisDevice')
+                            : t('popup_otherDevice')}
+                      </span>
                       {isCurrent && (
                         <span className={styles.currentBadge}> {t('popup_current')}</span>
                       )}

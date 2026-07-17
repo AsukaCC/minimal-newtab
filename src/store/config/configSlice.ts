@@ -13,7 +13,7 @@ import { defaultNavItems } from '../../common/defaultWebsites';
 export interface ConfigState {
   configId?: string; // 配置唯一ID
   theme: boolean; // true = dark, false = light
-  updatedAt: string; // 配置最后修改日期（YYYY-MM-DD HH:mm:ss 格式）
+  updatedAt: string; // ISO 8601 时间戳；兼容读取旧的本地日期格式
   chooseEngine: string; // 选择的搜索引擎 key
   isDirectLink: boolean; // true: 当前标签页打开；false: 新标签页打开
   themeColor: string; // 主题色，例如 '#667eea'
@@ -68,7 +68,7 @@ export function generateConfigId(): string {
  */
 const initialState: ConfigState = {
   theme: false, // 默认亮色主题
-  updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'), // 初始化时设置为当前时间
+  updatedAt: dayjs().toISOString(), // 毫秒精度用于跨设备冲突判断
   chooseEngine: 'default',
   isDirectLink: false,
   themeColor: '#667eea', // 默认主题色（蓝紫色）
@@ -92,7 +92,7 @@ const configSlice = createSlice({
      */
     setTheme: (state, action: PayloadAction<boolean>) => {
       state.theme = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -100,7 +100,7 @@ const configSlice = createSlice({
      */
     setChooseEngine: (state, action: PayloadAction<string>) => {
       state.chooseEngine = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -108,7 +108,7 @@ const configSlice = createSlice({
      */
     setIsDirectLink: (state, action: PayloadAction<boolean>) => {
       state.isDirectLink = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -116,7 +116,7 @@ const configSlice = createSlice({
      */
     setThemeColor: (state, action: PayloadAction<string>) => {
       state.themeColor = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -124,7 +124,7 @@ const configSlice = createSlice({
      */
     setLanguage: (state, action: PayloadAction<string>) => {
       state.language = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -132,7 +132,7 @@ const configSlice = createSlice({
      */
     setNavItems: (state, action: PayloadAction<NavItem[]>) => {
       state.navItems = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -140,7 +140,7 @@ const configSlice = createSlice({
      */
     setShowNavBar: (state, action: PayloadAction<boolean>) => {
       state.showNavBar = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -148,7 +148,7 @@ const configSlice = createSlice({
      */
     setNavBarThemeColor: (state, action: PayloadAction<string>) => {
       state.navBarThemeColor = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -156,7 +156,7 @@ const configSlice = createSlice({
      */
     setNavBarItemGap: (state, action: PayloadAction<number>) => {
       state.navBarItemGap = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -164,7 +164,7 @@ const configSlice = createSlice({
      */
     setNavBarIconSize: (state, action: PayloadAction<number>) => {
       state.navBarIconSize = action.payload;
-      state.updatedAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      state.updatedAt = dayjs().toISOString();
     },
 
     /**
@@ -187,7 +187,7 @@ const configSlice = createSlice({
 
       return {
         ...initialState,
-        updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        updatedAt: dayjs().toISOString(),
         language: defaultLanguage,
         navItems: defaultNavItems,
         // 清除 configId

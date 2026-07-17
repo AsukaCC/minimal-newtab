@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "key": "",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuGlr48aO0l5cYIDtjYCW1AB14rPhDNO8tARNEDmyN32NAW/LnBWYEgljpbZz9KehlsP8rCf/aLJuzmwqcgdTa4upE4ATuauPQnOmffG2anFxyFEEvhe+P2+V7pArs1gfGv3rdQHwQ22XtkNgfibjuZuSxw5TTHdAt3Fgbvl/Ow4v/0uRRpD57enHHf5603/V9wZe69Y1RuDozT5Ih61sQvPVcWeLRMW7FDtNK2B25QOvLa4jt2QNE7XdKj2nxiJnov6aAKZCfrAqdhMf0mMfgEprZFTb7FWb6OTSZRkNpbGV1RMTIoE/ZUUJGUJAAta3k7bPjYQl2S7m10+6ZB0DvwIDAQAB",
   "version": "1.1.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "zh_CN",
@@ -17,14 +17,15 @@
     "newtab": "newtab.html"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "permissions": [
     "storage",
     "search"
   ],
   "host_permissions": [
-    "https://api.bing.com/*",
-    "https://suggestion.baidu.com/*"
+    "https://www.google.com/*",
+    "https://api.bing.com/*"
   ]
 }

@@ -65,7 +65,7 @@
     "message": "Configure nav bar"
   },
   "settings_syncHistory": {
-    "message": "Sync History"
+    "message": "Local configuration history"
   },
   "settings_navBarResetConfirm": {
     "message": "Reset to default list?"
@@ -148,6 +148,69 @@
   "settings_websiteManagement": {
     "message": "Website Management"
   },
+  "settings_aiWebsiteLibrary": {
+    "message": "Built-in Website Library"
+  },
+  "settings_aiWebsiteLibraryDesc": {
+    "message": "Common domestic and international websites with icons bundled into the extension."
+  },
+  "settings_searchAiWebsites": {
+    "message": "Search built-in websites"
+  },
+  "settings_aiCategoryAll": {
+    "message": "All"
+  },
+  "settings_aiCategoryAssistant": {
+    "message": "Assistants"
+  },
+  "settings_aiCategorySearch": {
+    "message": "Search"
+  },
+  "settings_aiCategoryCreative": {
+    "message": "Creative"
+  },
+  "settings_aiCategoryDeveloper": {
+    "message": "Developer"
+  },
+  "settings_noMatchingAiWebsites": {
+    "message": "No matching built-in websites"
+  },
+  "settings_siteCategoryAi": {
+    "message": "AI"
+  },
+  "settings_siteCategoryVideo": {
+    "message": "Video"
+  },
+  "settings_siteCategoryMusic": {
+    "message": "Music"
+  },
+  "settings_siteCategoryTechnology": {
+    "message": "Technology"
+  },
+  "settings_siteCategoryNews": {
+    "message": "News"
+  },
+  "settings_currentWebsites": {
+    "message": "Current navigation"
+  },
+  "settings_added": {
+    "message": "Added"
+  },
+  "settings_uploadSvgIcon": {
+    "message": "Upload custom SVG icon"
+  },
+  "settings_removeCustomIcon": {
+    "message": "Remove custom icon"
+  },
+  "settings_svgIconFileType": {
+    "message": "Only .svg icon files are supported"
+  },
+  "settings_invalidSvgIcon": {
+    "message": "The SVG icon is invalid or contains unsupported content"
+  },
+  "settings_svgIconTooLarge": {
+    "message": "The sanitized SVG icon must be no larger than 8 KB"
+  },
   "settings_manageSites": {
     "message": "Manage Website List"
   },
@@ -212,10 +275,10 @@
     "message": "Welcome"
   },
   "popup_syncTitle": {
-    "message": "Sync"
+    "message": "Configuration sync"
   },
   "popup_syncDescription": {
-    "message": "Config"
+    "message": "Sync current settings across devices; keep history on this device"
   },
   "popup_loginSubtitle": {
     "message": "Sign in with your Google account to sync your data"
@@ -263,10 +326,10 @@
     "message": "Hide Sync History"
   },
   "popup_syncHistory": {
-    "message": "Sync History"
+    "message": "Local configuration history"
   },
   "popup_noHistory": {
-    "message": "No sync history"
+    "message": "No local configuration history"
   },
   "popup_historyTypeUpload": {
     "message": "Upload"
@@ -320,7 +383,7 @@
     "message": "Delete failed"
   },
   "popup_confirmDelete": {
-    "message": "Are you sure you want to delete this sync record?"
+    "message": "Delete this local configuration history entry?"
   },
   "popup_export": {
     "message": "Export"
@@ -369,7 +432,7 @@
     "message": "Clear failed"
   },
   "popup_confirmClearAll": {
-    "message": "Are you sure you want to clear all sync records? This action cannot be undone."
+    "message": "Clear all local configuration history? The cloud configuration will remain, and the next sync will recreate this device's record."
   },
   "popup_refresh": {
     "message": "Fetch"
@@ -382,6 +445,15 @@
   },
   "popup_current": {
     "message": "Current"
+  },
+  "popup_thisDevice": {
+    "message": "This device"
+  },
+  "popup_otherDevice": {
+    "message": "Other device"
+  },
+  "popup_legacyDevice": {
+    "message": "Legacy record"
   },
   "popup_loginCancelled": {
     "message": "Login cancelled"
@@ -454,5 +526,22 @@
   },
   "popup_chromeSync": {
     "message": "Chrome Sync"
+  },
+  "popup_syncStorageReady": {
+    "message": "Sync storage available ($bytes$ bytes used)",
+    "placeholders": {
+      "bytes": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_syncStorageUnavailable": {
+    "message": "Sync storage unavailable"
+  },
+  "popup_checkingSyncStorage": {
+    "message": "Checking sync storage..."
+  },
+  "popup_syncManagedByChrome": {
+    "message": "Cross-device transfer is controlled by the account sync setting in Chrome."
   }
 }

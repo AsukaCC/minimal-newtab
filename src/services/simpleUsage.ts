@@ -15,6 +15,7 @@ import {
   importToCurrentConfig,
   startAutoSync,
 } from './chromeSyncService';
+import { useState } from 'react';
 
 // ==================== 初始化 ====================
 
@@ -182,8 +183,8 @@ export async function demo() {
   if (histories.length > 0) {
     console.log('最新记录:', {
       ID: histories[0].id,
-      类型：histories[0].type,
-      时间：new Date(histories[0].updatedAt).toLocaleString()
+      type: histories[0].type,
+      time: new Date(histories[0].updatedAt).toLocaleString(),
     });
   }
 

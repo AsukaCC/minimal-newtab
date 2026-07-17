@@ -10,8 +10,8 @@ import { SyncHistory } from '../../services/chromeSyncService';
  * 用户信息状态接口
  */
 export interface UserInfoState {
-  // 同步状态（Chrome 同步始终可用）
-  isSyncEnabled: boolean; // Chrome 同步是否启用
+  // chrome.storage.sync API 可用状态；账户云同步开关由 Chrome 管理
+  isSyncEnabled: boolean;
   
   // 历史记录
   histories: SyncHistory[]; // 同步历史记录列表
@@ -23,7 +23,7 @@ export interface UserInfoState {
  * 初始状态
  */
 const initialState: UserInfoState = {
-  isSyncEnabled: true, // Chrome 同步默认启用
+  isSyncEnabled: false, // 初始化时由 chrome.storage.sync 可用性检测更新
   histories: [],
   isLoadingHistories: false,
   historiesLastUpdated: null,

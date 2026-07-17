@@ -44,24 +44,10 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   z-index: 550;
-  animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  /* 优化动画性能 */
-  will-change: opacity;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* fadeIn 动画已定义在公共样式 common.css 中 */
@@ -73,7 +59,7 @@
   right: 0;
   width: 420px;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.9);
   border-left: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
   z-index: 600;
@@ -81,13 +67,9 @@
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  backdrop-filter: blur(30px) saturate(160%);
-  -webkit-backdrop-filter: blur(30px) saturate(160%);
-  /* 使用 transform 替代 right，启用 GPU 加速 */
-  transform: translateX(100%) translateZ(0);
-  -webkit-transform: translateX(100%) translateZ(0);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+  transform: translate3d(100%, 0, 0);
+  backface-visibility: hidden;
+  contain: layout paint;
 }
 
 .settingsPanel::before {
@@ -111,30 +93,12 @@
   z-index: 1;
 }
 
-.settingsPanel.open {
-  transform: translateX(0) translateZ(0);
-  -webkit-transform: translateX(0) translateZ(0);
-}
-
 .slidingWrapper {
   display: flex;
   width: 300%;
   height: 100%;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* 启用 GPU 加速 */
-  will-change: transform;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-.slideLevel1 {
-  transform: translateX(-33.333%) translateZ(0);
-  -webkit-transform: translateX(-33.333%) translateZ(0);
-}
-
-.slideLevel2 {
-  transform: translateX(-66.666%) translateZ(0);
-  -webkit-transform: translateX(-66.666%) translateZ(0);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .pageContent {
@@ -461,7 +425,7 @@
 }
 
 [data-theme='dark'] .settingsPanel {
-  background: rgba(18, 18, 22, 0.72);
+  background: rgba(18, 18, 22, 0.92);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
@@ -588,13 +552,7 @@
 @media screen and (max-width: 768px) {
   .settingsPanel {
     width: 100%;
-    transform: translateX(100%) translateZ(0);
-    -webkit-transform: translateX(100%) translateZ(0);
-  }
-
-  .settingsPanel.open {
-    transform: translateX(0) translateZ(0);
-    -webkit-transform: translateX(0) translateZ(0);
+    transform: translate3d(100%, 0, 0);
   }
 
   .settingsButton {

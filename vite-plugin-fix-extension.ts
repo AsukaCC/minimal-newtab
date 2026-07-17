@@ -23,23 +23,12 @@ export function fixExtension(): Plugin {
         const rawManifest = readFileSync(manifestSrc, 'utf-8');
         const manifest = JSON.parse(rawManifest);
 
-        // 从环境变量中注入扩展 key 与 OAuth2 client_id
-        const { VITE_CHROME_EXTENSION_KEY, VITE_GOOGLE_CLIENT_ID } =
-          process.env;
-
-        if (VITE_CHROME_EXTENSION_KEY) {
-          manifest.key = VITE_CHROME_EXTENSION_KEY;
-        }
-
-        if (manifest.oauth2 && VITE_GOOGLE_CLIENT_ID) {
-          manifest.oauth2.client_id = VITE_GOOGLE_CLIENT_ID;
-        }
-
         mkdirSync(distDir, { recursive: true });
         writeFileSync(manifestDest, JSON.stringify(manifest, null, 2));
-        console.log('✓ manifest.json generated with env overrides');
+        console.log('✓ manifest.json generated');
       } catch (error) {
         console.error('Error generating manifest.json:', error);
+        throw error;
       }
 
       // 移动并修复 popup.html

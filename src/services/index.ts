@@ -37,6 +37,7 @@ export {
   
   // 辅助函数
   getLocalConfig,
+  getSyncStorageDiagnostics,
   findHistoryByConfigId,
   
   // 类型定义

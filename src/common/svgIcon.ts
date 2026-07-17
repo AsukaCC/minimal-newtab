@@ -6,7 +6,7 @@ export interface Props {
 
 const PLACEHOLDER = '{{className}}';
 
-function createSvgIcon(svg: string): React.FC<Props> {
+export function createSvgIcon(svg: string): React.FC<Props> {
   return ({ className = '' }) =>
     React.createElement('span', {
       className,

@@ -1,18 +1,14 @@
-import React, { useRef, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { gsap } from 'gsap';
 import { useAppSelector } from '../../store/hooks';
 import type { RootState } from '../../store/types';
 import styles from './index.module.css';
-import { YouTube, ChatGPT, GitHub, X, defaultWebsiteIcon as DefaultWebsiteIcon, Claude } from '../../common/svgIcon';
+import { defaultWebsiteIcon as DefaultWebsiteIcon } from '../../common/svgIcon';
+import { siteIconByKey } from '../../common/siteIconCatalog';
 import { defaultNavItems } from '../../common/defaultWebsites';
 import type { NavItem } from '../../types';
-
-const iconByKey: Record<'youtube' | 'chatgpt' | 'github' | 'x' | 'claude', React.FC<{ className?: string }>> = {
-    youtube: YouTube,
-    chatgpt: ChatGPT,
-    github: GitHub,
-    x: X,
-    claude: Claude,
-};
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { svgSourceToDataUrl } from '../../utils/customSvgIcon';
 
 export type { NavItem };
 
@@ -55,12 +51,13 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     const items = propItems || storeNavItems || defaultNavItems;
 
     const showNavBar = typeof showNavBarValue === 'boolean' ? showNavBarValue : true;
+    const navRef = useRef<HTMLElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const rafRef = useRef<number | null>(null);
-    const latestScrollLeftRef = useRef(0);
+    const latestFirstVisibleSlotRef = useRef(0);
     const [hasOverflow, setHasOverflow] = useState(false);
     const [viewportWidth, setViewportWidth] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
+    const [firstVisibleSlot, setFirstVisibleSlot] = useState(0);
     const dragRef = useRef({
         isDragging: false,
         pointerId: -1,
@@ -71,6 +68,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     const lastPointerRef = useRef<{ clientX: number; clientY: number } | null>(null);
     const isPointerOverRef = useRef(false);
     const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
+    const reducedMotion = useReducedMotion();
 
     const itemCount = items.length;
     // 直接使用 store 中的配置值计算，不再从 CSS 读取
@@ -128,17 +126,23 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             }
         }
 
-        latestScrollLeftRef.current = nextScrollLeft;
-        if (rafRef.current === null) {
+        const nextFirstVisibleSlot = hasOverflow
+            ? Math.floor(nextScrollLeft / itemStride)
+            : 0;
+        if (nextFirstVisibleSlot !== latestFirstVisibleSlotRef.current) {
+            latestFirstVisibleSlotRef.current = nextFirstVisibleSlot;
+            setFirstVisibleSlot(nextFirstVisibleSlot);
+        }
+
+        if (isPointerOverRef.current && lastPointerRef.current && rafRef.current === null) {
             rafRef.current = window.requestAnimationFrame(() => {
-                setScrollLeft(latestScrollLeftRef.current);
-                if (isPointerOverRef.current && lastPointerRef.current) {
+                if (lastPointerRef.current) {
                     updateHoveredFromPointer(lastPointerRef.current.clientX, lastPointerRef.current.clientY);
                 }
                 rafRef.current = null;
             });
         }
-    }, [centerBaseScroll, cycleWidth, hasOverflow, itemCount, updateHoveredFromPointer]);
+    }, [centerBaseScroll, cycleWidth, hasOverflow, itemCount, itemStride, updateHoveredFromPointer]);
 
     const onWheel = useCallback((e: WheelEvent) => {
         const el = scrollRef.current;
@@ -151,8 +155,14 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         const maxStep = itemStride * 1; // 最多约 1 个 item 的宽度
         const limitedDelta = Math.sign(rawDelta) * Math.min(Math.abs(rawDelta), maxStep);
 
-        el.scrollLeft += Number.isFinite(limitedDelta) ? limitedDelta : 0;
-    }, [hasOverflow, itemStride]);
+        const delta = Number.isFinite(limitedDelta) ? limitedDelta : 0;
+        gsap.to(el, {
+            scrollLeft: el.scrollLeft + delta,
+            duration: reducedMotion ? 0 : 0.24,
+            ease: 'power2.out',
+            overwrite: 'auto',
+        });
+    }, [hasOverflow, itemStride, reducedMotion]);
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -181,9 +191,30 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         const el = scrollRef.current;
         if (!el) return;
         el.scrollLeft = centerBaseScroll;
-        latestScrollLeftRef.current = centerBaseScroll;
-        setScrollLeft(centerBaseScroll);
-    }, [centerBaseScroll, cycleWidth, hasOverflow, itemCount]);
+        const initialSlot = Math.floor(centerBaseScroll / itemStride);
+        latestFirstVisibleSlotRef.current = initialSlot;
+        setFirstVisibleSlot(initialSlot);
+    }, [centerBaseScroll, cycleWidth, hasOverflow, itemCount, itemStride]);
+
+    useLayoutEffect(() => {
+        const nav = navRef.current;
+        if (!nav || !showNavBar) return;
+        const tween = gsap.fromTo(
+            nav,
+            { autoAlpha: 0, y: reducedMotion ? 0 : 16 },
+            {
+                autoAlpha: 1,
+                y: 0,
+                duration: reducedMotion ? 0 : 0.45,
+                ease: 'power3.out',
+                force3D: true,
+                clearProps: 'transform,opacity,visibility',
+            }
+        );
+        return () => {
+            tween.kill();
+        };
+    }, [reducedMotion, showNavBar]);
 
     useEffect(() => () => {
         if (rafRef.current !== null) {
@@ -195,6 +226,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         const el = scrollRef.current;
         if (!el) return;
+        gsap.killTweensOf(el, 'scrollLeft');
         dragRef.current = {
             isDragging: false,
             pointerId: e.pointerId,
@@ -260,7 +292,6 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         const slotsToRender = hasOverflow
             ? Math.ceil(viewportWidth / itemStride) + VIRTUAL_BUFFER * 2
             : itemCount;
-        const firstVisibleSlot = hasOverflow ? Math.floor(scrollLeft / itemStride) : 0;
         const startSlot = hasOverflow ? Math.max(0, firstVisibleSlot - VIRTUAL_BUFFER) : 0;
         const endSlot = Math.min(trackSlots - 1, startSlot + slotsToRender - 1);
         const slots: number[] = [];
@@ -273,7 +304,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             windowOffset: startSlot * itemStride,
             windowWidth: slots.length * itemStride,
         };
-    }, [hasOverflow, itemCount, itemStride, scrollLeft, trackSlots, viewportWidth]);
+    }, [firstVisibleSlot, hasOverflow, itemCount, itemStride, trackSlots, viewportWidth]);
 
     if (!showNavBar) {
         return null;
@@ -284,6 +315,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
     return (
         <nav
+            ref={navRef}
             className={`${styles.nav} ${className}`}
             role="navigation"
             aria-label="底部导航"
@@ -311,14 +343,23 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                         >
                             {visibleSlots.map((slot) => {
                                 const item = items[slot % itemCount];
-                                const IconComponent = item.icon ? iconByKey[item.icon] : undefined;
+                                const IconComponent = item.icon ? siteIconByKey[item.icon] : undefined;
                                 const faviconUrl = item.iconUrl;
+                                const customIconUrl = item.customIconSvg
+                                    ? svgSourceToDataUrl(item.customIconSvg)
+                                    : undefined;
                                 const hasBuiltInIcon = !!IconComponent;
                                 const validLink = isValidUrl(item.url);
 
                                 const iconNode = (
                                     <span className={styles.iconWrap}>
-                                        {hasBuiltInIcon ? (
+                                        {customIconUrl ? (
+                                            <img
+                                                src={customIconUrl}
+                                                alt=""
+                                                className={styles.icon}
+                                            />
+                                        ) : hasBuiltInIcon ? (
                                             // 旧的内置图标保持不变
                                             <IconComponent className={styles.icon} />
                                         ) : (

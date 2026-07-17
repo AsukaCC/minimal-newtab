@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { gsap } from 'gsap';
 import styles from './index.module.css';
 import { useAppSelector } from '../../store/hooks';
 import { useI18n } from '../../hooks/useI18n';
@@ -13,6 +14,7 @@ import ConfigInfoHeader from './components/ConfigInfoHeader';
 import ConfigInfoSubHeader from './components/ConfigInfoSubHeader';
 import { SettingsIcon } from '../../common/svgIcon';
 import type { PageComponent } from './types';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 interface ConfigInfoProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ interface ConfigInfoProps {
 
 const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const slidingWrapperRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
   const themeColor = useAppSelector((state) => state.config.themeColor);
@@ -28,7 +31,8 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
   // 页面栈：动态存储所有页面组件
   const [pages, setPages] = useState<PageComponent[]>([]);
   const pagesRef = useRef<PageComponent[]>([]);
-  const [isSlidingBack, setIsSlidingBack] = useState(false);
+  const isSlidingBackRef = useRef(false);
+  const reducedMotion = useReducedMotion();
 
   // 保持 pagesRef 同步
   useEffect(() => {
@@ -105,14 +109,47 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose, pages]);
 
-  // 重置页面栈状态
-  useEffect(() => {
-    if (!isOpen) {
-      setPages([]);
-      setIsSelectOpen(false);
-      setIsSlidingBack(false);
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    const overlay = overlayRef.current;
+    if (!panel || !overlay) return;
+
+    gsap.killTweensOf([panel, overlay]);
+    const duration = reducedMotion ? 0 : isOpen ? 0.36 : 0.24;
+    const timeline = gsap.timeline({ defaults: { overwrite: 'auto' } });
+
+    if (isOpen) {
+      gsap.set(overlay, { visibility: 'visible', pointerEvents: 'auto' });
+      timeline
+        .to(overlay, { autoAlpha: 1, duration: reducedMotion ? 0 : 0.2, ease: 'power1.out' }, 0)
+        .to(panel, {
+          x: 0,
+          duration,
+          ease: 'power3.out',
+          force3D: true,
+        }, 0);
+    } else {
+      timeline
+        .to(overlay, { autoAlpha: 0, duration: reducedMotion ? 0 : 0.18, ease: 'power1.in' }, 0)
+        .to(panel, {
+          x: panel.offsetWidth,
+          duration,
+          ease: 'power2.in',
+          force3D: true,
+        }, 0)
+        .set(overlay, { visibility: 'hidden', pointerEvents: 'none' })
+        .add(() => {
+          gsap.set(slidingWrapperRef.current, { xPercent: 0 });
+          isSlidingBackRef.current = false;
+          setPages([]);
+          setIsSelectOpen(false);
+        });
     }
-  }, [isOpen]);
+
+    return () => {
+      timeline.kill();
+    };
+  }, [isOpen, reducedMotion]);
 
   // 应用主题色到 CSS 变量
   useEffect(() => {
@@ -123,13 +160,28 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
 
   // 返回上一页
   const handleBack = useCallback(() => {
-    if (isSlidingBack || pagesRef.current.length <= 1) return;
-    setIsSlidingBack(true);
-  }, [isSlidingBack]);
+    const wrapper = slidingWrapperRef.current;
+    if (isSlidingBackRef.current || pagesRef.current.length <= 1 || !wrapper) return;
+
+    isSlidingBackRef.current = true;
+    const targetLevel = pagesRef.current.length - 2;
+    gsap.to(wrapper, {
+      xPercent: targetLevel * -33.333,
+      duration: reducedMotion ? 0 : 0.3,
+      ease: 'power3.inOut',
+      force3D: true,
+      overwrite: 'auto',
+      onComplete: () => {
+        setPages((prev) => prev.slice(0, -1));
+        setIsSelectOpen(false);
+        isSlidingBackRef.current = false;
+      },
+    });
+  }, [reducedMotion]);
 
   // 推送新页面到栈中
   const pushPage = useCallback((pageId: string) => {
-    if (isSlidingBack) return;
+    if (isSlidingBackRef.current) return;
 
     let newPage: PageComponent;
 
@@ -179,54 +231,34 @@ const ConfigInfo: React.FC<ConfigInfoProps> = ({ isOpen, onClose }) => {
     }
 
     setPages(prev => [...prev, newPage]);
-  }, [isSlidingBack, handleBack, t, isSelectOpen]);
+  }, [handleBack, t, isSelectOpen]);
 
-  // 返回动画处理
-  useEffect(() => {
-    if (!isSlidingBack) return;
-    const el = slidingWrapperRef.current;
-    if (!el) {
-      setIsSlidingBack(false);
-      setPages(prev => prev.slice(0, -1));
-      setIsSelectOpen(false);
-      return;
-    }
+  useLayoutEffect(() => {
+    const wrapper = slidingWrapperRef.current;
+    if (!wrapper || isSlidingBackRef.current || pages.length === 0) return;
 
-    // 先更新页面栈，触发 CSS transform 变化产生动画
-    setPages(prev => prev.slice(0, -1));
-    setIsSelectOpen(false);
-
-    const onTransitionEnd = (e: TransitionEvent) => {
-      if (e.target !== el || e.propertyName !== 'transform') return;
-      el.removeEventListener('transitionend', onTransitionEnd);
-      setIsSlidingBack(false);
-    };
-    el.addEventListener('transitionend', onTransitionEnd);
-    return () => el.removeEventListener('transitionend', onTransitionEnd);
-  }, [isSlidingBack]);
-
-  // 计算滑动容器的 className
-  const getSlidingWrapperClassName = () => {
-    if (isSlidingBack) return styles.slidingWrapper;
-    // 根据页面栈长度计算偏移量
-    if (pages.length === 2) return `${styles.slidingWrapper} ${styles.slideLevel1}`;
-    if (pages.length === 3) return `${styles.slidingWrapper} ${styles.slideLevel2}`;
-    return styles.slidingWrapper;
-  };
+    gsap.to(wrapper, {
+      xPercent: (pages.length - 1) * -33.333,
+      duration: reducedMotion ? 0 : 0.34,
+      ease: 'power3.inOut',
+      force3D: true,
+      overwrite: 'auto',
+    });
+  }, [pages.length, reducedMotion]);
 
   return (
     <>
       {/* 遮罩层 */}
-      {isOpen && <div className={styles.overlay} onClick={onClose} />}
+      <div ref={overlayRef} className={styles.overlay} onClick={onClose} />
 
       {/* 设置面板 */}
       <div
         ref={panelRef}
-        className={`${styles.settingsPanel} ${isOpen ? styles.open : ''} ${isSelectOpen ? styles.selectOpen : ''}`}>
+        className={`${styles.settingsPanel} ${isSelectOpen ? styles.selectOpen : ''}`}>
 
         <div
           ref={slidingWrapperRef}
-          className={getSlidingWrapperClassName()}>
+          className={styles.slidingWrapper}>
           {/* 渲染页面栈中的所有页面 */}
           {pages.map((page, index) => (
             <div key={`${page.id}-${index}`} className={styles.pageContent}>

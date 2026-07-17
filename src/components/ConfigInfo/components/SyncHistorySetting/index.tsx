@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAppSelector } from '../../../../store/hooks';
 import { useI18n } from '../../../../hooks/useI18n';
 import styles from './index.module.css';
 
@@ -9,12 +8,6 @@ interface SyncHistorySettingProps {
 
 const SyncHistorySetting: React.FC<SyncHistorySettingProps> = ({ onOpenHistory }) => {
   const { t } = useI18n();
-  const isSyncEnabled = useAppSelector((state) => state.userInfo.isSyncEnabled);
-
-  // 只在同步启用时显示
-  if (!isSyncEnabled) {
-    return null;
-  }
 
   return (
     <div

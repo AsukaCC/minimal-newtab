@@ -30,15 +30,21 @@
   ],
   "scripts": {
     "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js && node scripts/validate-manifest.js",
+    "smoke:ui": "node scripts/smoke-ui.mjs",
+    "test:sync": "node --experimental-strip-types scripts/test-sync-storage.ts",
+    "typecheck": "tsc --noEmit",
+    "validate:manifest": "node scripts/validate-manifest.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "dayjs": "^1.11.19",
+    "gsap": "^3.15.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.2.0",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "simple-icons": "^16.26.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",

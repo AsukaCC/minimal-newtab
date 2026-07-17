@@ -9,7 +9,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../hooks/useI18n';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setHistories, setLoadingHistories } from '../store';
-import { startAutoSync, stopAutoSync } from '../services/chromeSyncService';
+import { getSyncHistory, startAutoSync, stopAutoSync } from '../services/chromeSyncService';
 import styles from './index.module.css';
 import Search from '../components/Search';
 import Loading from '../components/Loading';
@@ -27,16 +27,16 @@ const NewTabApp: React.FC = () => {
     document.title = t('extensionName');
   }, [t]);
 
-  // 应用初始化时加载历史记录（Chrome 同步始终可用）
+  // 应用初始化时从本地存储加载历史记录
   useEffect(() => {
     const loadHistory = async () => {
       try {
         dispatch(setLoadingHistories(true));
-        // Chrome 同步会自动加载历史记录
-        dispatch(setLoadingHistories(false));
+        await getSyncHistory(true);
       } catch (error) {
         console.error('[NewTabApp] 加载历史记录失败:', error);
         dispatch(setHistories([]));
+      } finally {
         dispatch(setLoadingHistories(false));
       }
     };

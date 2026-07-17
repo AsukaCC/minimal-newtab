@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { gsap } from 'gsap';
 import styles from './index.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../../store/types';
@@ -7,6 +8,7 @@ import type { SearchEngine } from '../../types.ts';
 import { useI18n } from '../../hooks/useI18n';
 import Button from '../Button';
 import { DefaultSearch, Google, Bing, Baidu, CloseIcon } from '../../common/svgIcon';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 const searchEngineIconMap: Record<string, React.FC<{ className?: string }>> = {
   default: DefaultSearch,
@@ -24,9 +26,12 @@ const Search: React.FC = () => {
   const dispatch = useDispatch();
   const { t } = useI18n();
   const enginesContainerRef = useRef<HTMLDivElement>(null);
+  const enginesListRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reducedMotion = useReducedMotion();
 
   const chooseEngine = useSelector((state: RootState) => state.config.chooseEngine);
   const isDirectLinkValue = useSelector((state: RootState) => state.config.isDirectLink);
@@ -108,6 +113,84 @@ const Search: React.FC = () => {
   ];
 
   const currentEngine = initialEngines.find((engine) => engine.key === chooseEngine) || initialEngines[0];
+
+  useLayoutEffect(() => {
+    const container = searchContainerRef.current;
+    if (!container) return;
+
+    const tween = gsap.fromTo(
+      container,
+      { autoAlpha: 0, y: reducedMotion ? 0 : 14, scale: reducedMotion ? 1 : 0.98 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: reducedMotion ? 0 : 0.45,
+        ease: 'power3.out',
+        force3D: true,
+        clearProps: 'transform,opacity,visibility',
+      }
+    );
+    return () => {
+      tween.kill();
+    };
+  }, [reducedMotion]);
+
+  useLayoutEffect(() => {
+    if (!isMenuVisible || !enginesListRef.current) return;
+    const tween = gsap.fromTo(
+      enginesListRef.current,
+      { autoAlpha: 0, y: reducedMotion ? 0 : -8, scale: reducedMotion ? 1 : 0.98 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: reducedMotion ? 0 : 0.2,
+        ease: 'power2.out',
+        force3D: true,
+        clearProps: 'transform,opacity,visibility',
+      }
+    );
+    return () => {
+      tween.kill();
+    };
+  }, [isMenuVisible, reducedMotion]);
+
+  useLayoutEffect(() => {
+    if (suggestions.length === 0 || !suggestionsRef.current) return;
+    const list = suggestionsRef.current;
+    const timeline = gsap.timeline();
+    timeline.fromTo(
+      list,
+      { autoAlpha: 0, y: reducedMotion ? 0 : -8 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: reducedMotion ? 0 : 0.18,
+        ease: 'power2.out',
+        force3D: true,
+        clearProps: 'transform,opacity,visibility',
+      }
+    );
+    if (!reducedMotion) {
+      timeline.fromTo(
+        list.children,
+        { autoAlpha: 0, y: -4 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.16,
+          stagger: 0.025,
+          ease: 'power1.out',
+          clearProps: 'transform,opacity,visibility',
+        },
+        '-=0.08'
+      );
+    }
+    return () => {
+      timeline.kill();
+    };
+  }, [suggestions.length, reducedMotion]);
 
   const handleEngineChange = (key: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -281,7 +364,7 @@ const Search: React.FC = () => {
   };
 
   return (
-    <div className={styles.searchContainer}>
+    <div ref={searchContainerRef} className={styles.searchContainer}>
       {/* 搜索引擎选择器 */}
       <div className={styles.enginesContainer} ref={enginesContainerRef}>
         <div className={styles.currentEngine} onClick={toggleMenu} onMouseDown={(e) => e.preventDefault()}>
@@ -289,7 +372,7 @@ const Search: React.FC = () => {
         </div>
 
         {isMenuVisible && (
-          <div className={styles.enginesList} onMouseDown={(e) => e.preventDefault()}>
+          <div ref={enginesListRef} className={styles.enginesList} onMouseDown={(e) => e.preventDefault()}>
             {initialEngines.map((engine) => (
               <div
                 key={engine.key}

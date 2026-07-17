@@ -38,6 +38,7 @@
   user-select: none;
   touch-action: pan-x;
   pointer-events: auto;
+  contain: layout paint;
   padding-top: var(--lift-space);
   padding-bottom: 2px;
   box-sizing: content-box;
@@ -102,6 +103,7 @@
   flex-direction: row;
   align-items: flex-start;
   gap: var(--item-gap);
+  transform: translateZ(0);
 }
 
 .item {

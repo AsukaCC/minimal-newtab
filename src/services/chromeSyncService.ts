@@ -11,23 +11,37 @@
 
 import {
   ConfigState,
-  generateConfigId,
   loadConfig,
   setHistories,
   clearHistories,
+  setSyncEnabled,
 } from '../store';
 import { store } from '../store';
 import dayjs from 'dayjs';
+import { upsertSyncHistory } from './syncHistoryUtils';
+import { decideConfigSync } from './syncDecision';
+import {
+  getSyncStorageDiagnostics,
+  getDeviceSyncIdentity,
+  isSyncedConfigChange,
+  markDeviceConfigSynced,
+  readLocalHistories,
+  readSyncData,
+  writeLocalHistories,
+  writeSyncedConfig,
+} from './chromeStorageRepository';
 
 // ==================== 数据结构定义 ====================
 
 // 同步配置结构（存储在 chrome.storage.sync）
 export interface SyncConfigStorage {
+  deviceId?: string; // 产生该配置的设备；旧版数据可缺省
   updatedAt: number; // 时间戳（毫秒）
   settings: ConfigState; // 配置对象
 }
 
 export interface SyncConfigParsed {
+  deviceId?: string;
   updatedAt: number; // 时间戳（毫秒）
   settings: ConfigState;
 }
@@ -38,6 +52,7 @@ export interface SyncHistory {
   updatedAt: number;
   settings: ConfigState;
   type: 'upload' | 'download' | 'restore'; // 同步类型
+  deviceId?: string; // 用于按设备区分配置记录
 }
 
 // 历史记录列表
@@ -54,80 +69,11 @@ export interface ChromeSyncData {
 
 // 导出常量
 export const MAX_HISTORY_COUNT = 10; // 最多保存 10 条历史记录
-const STORAGE_KEY = 'syncData';
 
 // ==================== Chrome Storage 操作 ====================
 
-/**
- * 从 Chrome Storage 获取数据
- */
-async function getFromStorage<T>(key: string): Promise<T | null> {
-  return new Promise((resolve) => {
-    try {
-      chrome.storage.sync.get([key], (result) => {
-        if (chrome.runtime.lastError) {
-          console.error('[ChromeSync] 读取存储失败:', chrome.runtime.lastError);
-          resolve(null);
-        } else {
-          resolve(result[key] || null);
-        }
-      });
-    } catch (error) {
-      console.error('[ChromeSync] 读取存储异常:', error);
-      resolve(null);
-    }
-  });
-}
-
-/**
- * 保存数据到 Chrome Storage
- */
-async function saveToStorage<T>(key: string, data: T): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      chrome.storage.sync.set({ [key]: data }, () => {
-        if (chrome.runtime.lastError) {
-          console.error('[ChromeSync] 保存存储失败:', chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    } catch (error) {
-      console.error('[ChromeSync] 保存存储异常:', error);
-      reject(error);
-    }
-  });
-}
-
-/**
- * 获取或创建用户同步数据
- */
 async function getUserSyncData(): Promise<ChromeSyncData> {
-  let syncData = await getFromStorage<ChromeSyncData>(STORAGE_KEY);
-
-  if (!syncData) {
-    // 初始化新的同步数据
-    syncData = {
-      currentConfig: null,
-      histories: [],
-      lastSyncAt: dayjs().valueOf(),
-    };
-    await saveToStorage(STORAGE_KEY, syncData);
-  }
-
-  return syncData;
-}
-
-/**
- * 保存用户同步数据
- */
-async function saveUserSyncData(data: ChromeSyncData): Promise<void> {
-  const dataWithTimestamp = {
-    ...data,
-    lastSyncAt: dayjs().valueOf(),
-  };
-  await saveToStorage(STORAGE_KEY, dataWithTimestamp);
+  return readSyncData(MAX_HISTORY_COUNT);
 }
 
 // ==================== 历史记录管理器 ====================
@@ -148,8 +94,7 @@ class HistoryBatchManager {
     this.isActive = true;
 
     try {
-      const syncData = await getUserSyncData();
-      this.histories = syncData?.histories || [];
+      this.histories = await readLocalHistories();
     } catch (error: any) {
       console.error('[HistoryBatchManager] begin() 加载历史记录失败:', error);
       this.histories = [];
@@ -165,15 +110,14 @@ class HistoryBatchManager {
       this.histories = [];
     }
 
-    const newHistory: SyncHistory = {
-      id: `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
-      updatedAt: config.updatedAt,
-      settings: config.settings,
+    this.histories = upsertSyncHistory(
+      this.histories,
+      config,
       type,
-    };
-
-    this.histories.unshift(newHistory);
-    this.histories = this.histories.slice(0, MAX_HISTORY_COUNT);
+      MAX_HISTORY_COUNT,
+      () =>
+        `history-${dayjs().valueOf()}-${Math.random().toString(36).substring(2, 9)}`,
+    );
   }
 
   /**
@@ -218,29 +162,24 @@ class HistoryBatchManager {
 
     // 重新加载最新数据并合并
     try {
-      const syncData = await getUserSyncData();
-      const cloudHistories = syncData?.histories || [];
+      const latestHistories = await readLocalHistories();
 
-      if (cloudHistories.length > 0 && this.histories.length > 0) {
+      if (latestHistories.length > 0 && this.histories.length > 0) {
         const historyMap = new Map<string, SyncHistory>();
 
-        for (const cloudHistory of cloudHistories) {
-          const configId = cloudHistory.settings.configId;
-          if (configId) {
-            historyMap.set(configId, cloudHistory);
-          }
+        for (const latestHistory of latestHistories) {
+          const key = latestHistory.settings.configId || latestHistory.id;
+          historyMap.set(key, latestHistory);
         }
 
         for (const localHistory of this.histories) {
-          const configId = localHistory.settings.configId;
-          if (configId) {
-            const existingHistory = historyMap.get(configId);
-            if (
-              !existingHistory ||
-              localHistory.updatedAt > existingHistory.updatedAt
-            ) {
-              historyMap.set(configId, localHistory);
-            }
+          const key = localHistory.settings.configId || localHistory.id;
+          const existingHistory = historyMap.get(key);
+          if (
+            !existingHistory ||
+            localHistory.updatedAt > existingHistory.updatedAt
+          ) {
+            historyMap.set(key, localHistory);
           }
         }
 
@@ -250,17 +189,12 @@ class HistoryBatchManager {
       }
     } catch (error) {
       console.error(
-        '[HistoryBatchManager] commit() 加载云端历史记录失败:',
+        '[HistoryBatchManager] commit() 加载本地历史记录失败:',
         error,
       );
     }
 
-    // 保存到 Chrome Storage
-    const syncData = await getUserSyncData();
-    await saveUserSyncData({
-      ...syncData,
-      histories: this.histories,
-    });
+    await writeLocalHistories(this.histories);
 
     // 同步更新 store
     store.dispatch(setHistories(this.histories));
@@ -296,6 +230,37 @@ class HistoryBatchManager {
 
 // 全局历史记录管理器实例
 const historyBatchManager = new HistoryBatchManager();
+let historyMutationQueue: Promise<void> = Promise.resolve();
+
+function enqueueHistoryMutation<T>(operation: () => Promise<T>): Promise<T> {
+  const result = historyMutationQueue.then(operation, operation);
+  historyMutationQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
+async function recordConfigHistory(
+  config: SyncConfigStorage,
+  type: 'upload' | 'download',
+): Promise<void> {
+  await enqueueHistoryMutation(async () => {
+    await historyBatchManager.begin();
+    const configId = config.settings.configId;
+    const existing = configId
+      ? historyBatchManager
+          .getHistories()
+          .find((history) => history.settings.configId === configId)
+      : undefined;
+    if (existing && existing.updatedAt >= config.updatedAt) {
+      historyBatchManager.reset();
+      return;
+    }
+    historyBatchManager.add(config, type);
+    await historyBatchManager.commit();
+  });
+}
 
 // ==================== 核心同步功能 ====================
 
@@ -343,42 +308,32 @@ export async function uploadConfig(): Promise<boolean> {
       return false;
     }
 
-    const newConfigId = generateConfigId();
-    const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    const identity = await getDeviceSyncIdentity();
+    const currentTimeString = dayjs().toISOString();
     const configToSync = {
       ...localConfig,
       settings: {
         ...localConfig.settings,
-        configId: newConfigId,
+        configId: identity.configId,
         updatedAt: currentTimeString,
       },
     };
 
     store.dispatch(
-      loadConfig({ configId: newConfigId, updatedAt: currentTimeString }),
+      loadConfig({ configId: identity.configId, updatedAt: currentTimeString }),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     const syncConfig: SyncConfigStorage = {
+      deviceId: identity.deviceId,
       updatedAt: dayjs().valueOf(),
       settings: configToSync.settings,
     };
 
-    // 保存到 Chrome Storage
-    const syncData = await getUserSyncData();
-    await saveUserSyncData({
-      ...syncData,
-      currentConfig: syncConfig,
-    });
+    await writeSyncedConfig(syncConfig);
+    await markDeviceConfigSynced();
 
-    // 保存到历史记录
-    const updatedConfig = getLocalConfig();
-    if (updatedConfig) {
-      await historyBatchManager.begin();
-      historyBatchManager.add(updatedConfig, 'upload');
-      await historyBatchManager.commit();
-    }
+    // 同一设备始终使用稳定 configId，因此此处会更新原历史记录。
+    await recordConfigHistory(syncConfig, 'upload');
 
     return true;
   } catch (error: any) {
@@ -403,14 +358,7 @@ export async function pullConfig(): Promise<boolean> {
     store.dispatch(loadConfig(syncData.currentConfig.settings));
 
     // 保存到历史记录
-    const syncConfigParsed: SyncConfigParsed = {
-      updatedAt: syncData.currentConfig.updatedAt,
-      settings: syncData.currentConfig.settings,
-    };
-
-    await historyBatchManager.begin();
-    historyBatchManager.add(syncConfigParsed, 'download');
-    await historyBatchManager.commit();
+    await recordConfigHistory(syncData.currentConfig, 'download');
 
     return true;
   } catch (error: any) {
@@ -422,10 +370,14 @@ export async function pullConfig(): Promise<boolean> {
 /**
  * 智能同步配置
  */
-export async function syncConfig(): Promise<{
+export interface ConfigSyncResult {
   action: 'upload' | 'download' | 'none';
   message: string;
-}> {
+}
+
+let activeConfigSync: Promise<ConfigSyncResult> | null = null;
+
+async function performConfigSync(): Promise<ConfigSyncResult> {
   try {
     console.log('[ChromeSync] ===== 开始智能同步配置 =====');
 
@@ -436,52 +388,77 @@ export async function syncConfig(): Promise<{
 
     const syncData = await getUserSyncData();
     const cloudConfig = syncData?.currentConfig;
+    const identity = await getDeviceSyncIdentity();
 
-    if (!cloudConfig) {
-      console.log('[ChromeSync] 云端不存在配置，上传本地配置');
-      await uploadConfig();
-      return { action: 'upload', message: '已上传本地配置到云端' };
-    }
+    const contentIsSame = cloudConfig
+      ? detectConfigDifferences(localConfig.settings, cloudConfig.settings)
+          .length === 0
+      : false;
+    const hasCurrentDeviceHistory = syncData.histories.some(
+      (history) => history.settings.configId === identity.configId,
+    );
+    const decision = decideConfigSync({
+      hasCloudConfig: Boolean(cloudConfig),
+      contentIsSame,
+      localUpdatedAt: localConfig.updatedAt,
+      cloudUpdatedAt: cloudConfig?.updatedAt || 0,
+      cloudDeviceId: cloudConfig?.deviceId,
+      currentDeviceId: identity.deviceId,
+      hasCurrentDeviceHistory,
+    });
 
-    const localUpdatedAt = localConfig.updatedAt;
-    const cloudUpdatedAt = cloudConfig.updatedAt;
-    const timeDiff = localUpdatedAt - cloudUpdatedAt;
-
-    // 比较配置内容
-    const isContentSame =
-      JSON.stringify(localConfig.settings) ===
-      JSON.stringify(cloudConfig.settings);
-
-    if (isContentSame && Math.abs(timeDiff) < 1000) {
-      return { action: 'none', message: '配置已同步' };
-    }
-
-    if (timeDiff > 0) {
+    if (decision === 'upload-local') {
       await uploadConfig();
       return {
         action: 'upload',
-        message: '已上传本地配置到云端（本地配置更新）',
+        message: hasCurrentDeviceHistory
+          ? '已更新本设备配置'
+          : '已创建本设备配置记录',
       };
-    } else {
+    }
+
+    if (decision === 'download-cloud') {
       await pullConfig();
       return {
         action: 'download',
         message: '已下载云端配置到本地（云端配置更新）',
       };
     }
+
+    if (cloudConfig) await recordConfigHistory(cloudConfig, 'download');
+    if (cloudConfig?.deviceId === identity.deviceId && !identity.hasSynced) {
+      await markDeviceConfigSynced();
+    }
+    return {
+      action: 'none',
+      message: hasCurrentDeviceHistory
+        ? '配置已同步'
+        : '已重建本设备配置历史',
+    };
   } catch (error: any) {
     console.error('[ChromeSync] 智能同步配置失败:', error);
     throw error;
   }
 }
 
+export function syncConfig(): Promise<ConfigSyncResult> {
+  if (activeConfigSync) return activeConfigSync;
+  activeConfigSync = performConfigSync().finally(() => {
+    activeConfigSync = null;
+  });
+  return activeConfigSync;
+}
+
 /**
  * 获取同步历史记录
  */
-export async function getSyncHistory(): Promise<SyncHistory[]> {
+export async function getSyncHistory(
+  forceRefresh = false,
+): Promise<SyncHistory[]> {
   try {
     const state = store.getState();
     if (
+      !forceRefresh &&
       state.userInfo &&
       state.userInfo.histories &&
       state.userInfo.histories.length > 0
@@ -489,13 +466,10 @@ export async function getSyncHistory(): Promise<SyncHistory[]> {
       return state.userInfo.histories;
     }
 
-    const syncData = await getUserSyncData();
-    if (syncData?.histories) {
-      store.dispatch(setHistories(syncData.histories));
-      return syncData.histories;
-    }
+    const histories = await readLocalHistories();
+    store.dispatch(setHistories(histories));
+    return histories;
 
-    return [];
   } catch (error) {
     console.error('[ChromeSync] 获取同步历史记录失败:', error);
     return [];
@@ -507,16 +481,18 @@ export async function getSyncHistory(): Promise<SyncHistory[]> {
  */
 export async function deleteSyncHistory(historyId: string): Promise<boolean> {
   try {
-    await historyBatchManager.begin();
-    const removed = historyBatchManager.remove(historyId);
+    return await enqueueHistoryMutation(async () => {
+      await historyBatchManager.begin();
+      const removed = historyBatchManager.remove(historyId);
 
-    if (!removed) {
-      historyBatchManager.reset();
-      return false;
-    }
+      if (!removed) {
+        historyBatchManager.reset();
+        return false;
+      }
 
-    await historyBatchManager.commit();
-    return true;
+      await historyBatchManager.commit();
+      return true;
+    });
   } catch (error) {
     console.error('[ChromeSync] 删除历史记录失败:', error);
     return false;
@@ -528,16 +504,12 @@ export async function deleteSyncHistory(historyId: string): Promise<boolean> {
  */
 export async function clearAllSyncHistory(): Promise<boolean> {
   try {
-    const syncData = await getUserSyncData();
-    await saveUserSyncData({
-      ...syncData,
-      histories: [],
-      currentConfig: null,
+    return await enqueueHistoryMutation(async () => {
+      historyBatchManager.reset();
+      await writeLocalHistories([]);
+      store.dispatch(clearHistories());
+      return true;
     });
-
-    store.dispatch(clearHistories());
-
-    return true;
   } catch (error) {
     console.error('[ChromeSync] 清空历史记录失败:', error);
     return false;
@@ -549,30 +521,26 @@ export async function clearAllSyncHistory(): Promise<boolean> {
  */
 export async function restoreFromHistory(historyId: string): Promise<boolean> {
   try {
-    await historyBatchManager.begin();
-    const histories = historyBatchManager.getHistories();
+    return await enqueueHistoryMutation(async () => {
+      await historyBatchManager.begin();
+      const histories = historyBatchManager.getHistories();
 
-    const historyIndex = histories.findIndex((h) => h.id === historyId);
-    if (historyIndex === -1) {
-      historyBatchManager.reset();
-      return false;
-    }
+      const historyIndex = histories.findIndex((h) => h.id === historyId);
+      if (historyIndex === -1) {
+        historyBatchManager.reset();
+        return false;
+      }
 
-    const history = histories[historyIndex];
+      const history = histories[historyIndex];
+      store.dispatch(loadConfig({ ...history.settings }));
 
-    const restoredSettings: ConfigState = {
-      ...history.settings,
-    };
-
-    store.dispatch(loadConfig(restoredSettings));
-
-    const currentHistories = histories.filter((h) => h.id !== historyId);
-    const allHistories = [history, ...currentHistories];
-
-    historyBatchManager.setHistories(allHistories);
-    await historyBatchManager.commit();
-
-    return true;
+      historyBatchManager.setHistories([
+        history,
+        ...histories.filter((item) => item.id !== historyId),
+      ]);
+      await historyBatchManager.commit();
+      return true;
+    });
   } catch (error) {
     console.error('[ChromeSync] 从历史记录恢复失败:', error);
     return false;
@@ -651,48 +619,7 @@ export async function autoSyncConfig(): Promise<boolean> {
 
   try {
     console.log('[ChromeSync] ===== 开始自动同步配置 =====');
-
-    const localConfig = getLocalConfig();
-    if (!localConfig) {
-      return false;
-    }
-
-    await historyBatchManager.begin();
-    const histories = historyBatchManager.getHistories();
-    const firstHistory = histories.length > 0 ? histories[0] : null;
-
-    if (!firstHistory) {
-      await uploadConfig();
-      historyBatchManager.reset();
-      return true;
-    }
-
-    const localConfigId = localConfig.settings.configId;
-    const cloudConfigId = firstHistory.settings.configId;
-
-    if (localConfigId && cloudConfigId && localConfigId === cloudConfigId) {
-      const differences = detectConfigDifferences(
-        localConfig.settings,
-        firstHistory.settings,
-      );
-
-      if (differences.length > 0) {
-        const updatedConfig = getLocalConfig();
-        if (updatedConfig) {
-          historyBatchManager.update(firstHistory.id, {
-            updatedAt: updatedConfig.updatedAt,
-            settings: updatedConfig.settings,
-            type: 'upload',
-          });
-          await historyBatchManager.commit();
-        }
-      }
-
-      historyBatchManager.reset();
-      return true;
-    }
-
-    historyBatchManager.reset();
+    await syncConfig();
     return true;
   } catch (error) {
     console.error('[ChromeSync] 自动同步配置失败:', error);
@@ -716,6 +643,11 @@ function detectConfigDifferences(
     'isDirectLink',
     'themeColor',
     'language',
+    'navItems',
+    'showNavBar',
+    'navBarThemeColor',
+    'navBarItemGap',
+    'navBarIconSize',
   ];
 
   for (const field of fieldsToCompare) {
@@ -737,8 +669,58 @@ export { historyBatchManager };
 
 // 自动同步定时器
 let autoSyncTimer: ReturnType<typeof setInterval> | null = null;
+let storageChangeTimer: ReturnType<typeof setTimeout> | null = null;
+let storageListenerAttached = false;
 const AUTO_SYNC_INTERVAL_MINUTES = 10;
 const AUTO_SYNC_INTERVAL = AUTO_SYNC_INTERVAL_MINUTES * 60 * 1000; // 10 分钟
+
+async function applyRemoteConfigChange(): Promise<void> {
+  const localConfig = getLocalConfig();
+  const syncData = await getUserSyncData();
+  const remoteConfig = syncData.currentConfig;
+  if (!localConfig || !remoteConfig) return;
+
+  const identity = await getDeviceSyncIdentity();
+  const isOtherDevice =
+    Boolean(remoteConfig.deviceId) && remoteConfig.deviceId !== identity.deviceId;
+
+  const contentIsSame =
+    detectConfigDifferences(localConfig.settings, remoteConfig.settings)
+      .length === 0;
+  if (contentIsSame || remoteConfig.updatedAt <= localConfig.updatedAt) {
+    if (isOtherDevice) await recordConfigHistory(remoteConfig, 'download');
+    return;
+  }
+
+  store.dispatch(loadConfig(remoteConfig.settings));
+  await recordConfigHistory(remoteConfig, 'download');
+}
+
+const handleStorageChange = (
+  changes: Record<string, chrome.storage.StorageChange>,
+  areaName: string,
+) => {
+  if (areaName !== 'sync' || !isSyncedConfigChange(changes)) return;
+  if (storageChangeTimer) clearTimeout(storageChangeTimer);
+  storageChangeTimer = setTimeout(() => {
+    void applyRemoteConfigChange().catch((error) => {
+      console.error('[ChromeSync] 应用远端配置失败:', error);
+    });
+  }, 300);
+};
+
+async function initializeChromeSync(): Promise<void> {
+  const diagnostics = await getSyncStorageDiagnostics();
+  store.dispatch(setSyncEnabled(diagnostics.available));
+  if (!diagnostics.available) {
+    console.warn('[ChromeSync] 同步存储不可用:', diagnostics.error);
+    return;
+  }
+
+  const syncData = await getUserSyncData();
+  store.dispatch(setHistories(syncData.histories));
+  await autoSyncConfig();
+}
 
 /**
  * 启动全局自动同步定时器
@@ -746,6 +728,20 @@ const AUTO_SYNC_INTERVAL = AUTO_SYNC_INTERVAL_MINUTES * 60 * 1000; // 10 分钟
 export function startAutoSync(): void {
   // 清除现有定时器
   stopAutoSync();
+
+  if (
+    typeof chrome !== 'undefined' &&
+    chrome.storage?.onChanged &&
+    !storageListenerAttached
+  ) {
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    storageListenerAttached = true;
+  }
+
+  void initializeChromeSync().catch((error) => {
+    store.dispatch(setSyncEnabled(false));
+    console.error('[ChromeSync] 初始化同步失败:', error);
+  });
 
   // 设置新的定时器
   autoSyncTimer = setInterval(async () => {
@@ -772,6 +768,18 @@ export function stopAutoSync(): void {
     autoSyncTimer = null;
     console.log('[ChromeSync] 已停止全局自动同步定时器');
   }
+  if (storageChangeTimer) {
+    clearTimeout(storageChangeTimer);
+    storageChangeTimer = null;
+  }
+  if (
+    storageListenerAttached &&
+    typeof chrome !== 'undefined' &&
+    chrome.storage?.onChanged
+  ) {
+    chrome.storage.onChanged.removeListener(handleStorageChange);
+    storageListenerAttached = false;
+  }
 }
 
 /**
@@ -789,51 +797,8 @@ export function resetAutoSyncTimer(): void {
  */
 export async function manualSyncConfig(): Promise<boolean> {
   try {
-    const localConfig = getLocalConfig();
-    if (!localConfig) {
-      throw new Error('无法获取本地配置');
-    }
-
-    await historyBatchManager.begin();
-    const histories = historyBatchManager.getHistories();
-    const firstHistory = histories.length > 0 ? histories[0] : null;
-    const localConfigId = localConfig.settings.configId;
-    const firstConfigId = firstHistory?.settings?.configId;
-
-    if (
-      firstHistory &&
-      localConfigId &&
-      firstConfigId &&
-      localConfigId === firstConfigId
-    ) {
-      const differences = detectConfigDifferences(
-        localConfig.settings,
-        firstHistory.settings,
-      );
-      if (differences.length === 0) {
-        // 配置内容相同，仅更新时间
-        const currentTimeString = dayjs().format('YYYY-MM-DD HH:mm:ss');
-        store.dispatch(loadConfig({ updatedAt: currentTimeString }));
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        const updatedConfig = getLocalConfig();
-        if (updatedConfig) {
-          historyBatchManager.update(firstHistory.id, {
-            updatedAt: updatedConfig.updatedAt,
-            settings: updatedConfig.settings,
-            type: 'upload',
-          });
-          await historyBatchManager.commit();
-        } else {
-          historyBatchManager.reset();
-        }
-
-        return true;
-      }
-    }
-
-    historyBatchManager.reset();
-    return uploadConfig();
+    await syncConfig();
+    return true;
   } catch (error: any) {
     console.error('[ChromeSync] 手动同步配置失败:', error);
     throw error;
@@ -843,12 +808,14 @@ export async function manualSyncConfig(): Promise<boolean> {
 // ==================== 用户信息辅助函数（向后兼容） ====================
 
 /**
- * 检查是否已登录（Chrome 同步始终可用）
- * @deprecated Chrome 同步不需要登录，此函数始终返回 true
+ * 检查同步存储 API 是否可用。Chrome 不向扩展暴露账户云同步开关。
+ * @deprecated 请使用 getSyncStorageDiagnostics 获取详细状态
  */
 export async function isLoggedIn(): Promise<boolean> {
-  return true;
+  return (await getSyncStorageDiagnostics()).available;
 }
+
+export { getDeviceSyncIdentity, getSyncStorageDiagnostics };
 
 /**
  * 获取访问令牌（Chrome 同步不需要）

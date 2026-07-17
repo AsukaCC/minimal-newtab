@@ -1,50 +1,63 @@
-// Service Worker for Chrome Extension
 chrome.runtime.onInstalled.addListener(() => {
-  // Extension installed
+  console.info('[background] Manifest V3 service worker installed');
 });
 
-// 通用搜索建议获取函数
-const fetchSuggestions = async (url: string, engineName: string) => {
+interface SuggestionRequest {
+  type: 'FETCH_GOOGLE_SUGGESTIONS' | 'FETCH_BING_SUGGESTIONS';
+  query: string;
+}
+
+interface SuggestionResponse {
+  success: boolean;
+  data: string[];
+  error?: string;
+}
+
+const fetchSuggestions = async (url: string): Promise<string[]> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const data = await response.json();
-  const suggestions = data[1] || [];
-  console.log(`[background] ${engineName} 搜索建议获取成功，返回 ${suggestions.length} 条建议`);
-  return suggestions;
+  const data: unknown = await response.json();
+  if (!Array.isArray(data) || !Array.isArray(data[1])) {
+    return [];
+  }
+  return data[1].filter((item): item is string => typeof item === 'string');
 };
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  const { type, query } = message;
+const suggestionEndpoints: Record<SuggestionRequest['type'], (query: string) => string> = {
+  FETCH_GOOGLE_SUGGESTIONS: (query) =>
+    `https://www.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}`,
+  FETCH_BING_SUGGESTIONS: (query) =>
+    `https://api.bing.com/osjson.aspx?query=${encodeURIComponent(query)}`,
+};
 
-  // 处理 Google 搜索建议请求（绕过 CORS 限制）
-  if (type === 'FETCH_GOOGLE_SUGGESTIONS') {
-    fetchSuggestions(
-      `https://www.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}`,
-      'Google'
-    )
-      .then((data) => sendResponse({ success: true, data }))
-      .catch((error) => {
-        console.error('[background] 获取 Google 搜索建议失败:', error);
-        sendResponse({ success: false, error: error.message, data: [] });
-      });
-    return true;
+chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
+  if (
+    typeof message !== 'object' ||
+    message === null ||
+    !('type' in message) ||
+    !('query' in message) ||
+    typeof message.type !== 'string' ||
+    !(message.type in suggestionEndpoints) ||
+    typeof message.query !== 'string'
+  ) {
+    return false;
   }
 
-  // 处理 Bing 搜索建议请求（绕过 CORS 限制）
-  if (type === 'FETCH_BING_SUGGESTIONS') {
-    fetchSuggestions(
-      `https://api.bing.com/osjson.aspx?query=${encodeURIComponent(query)}`,
-      'Bing'
-    )
-      .then((data) => sendResponse({ success: true, data }))
-      .catch((error) => {
-        console.error('[background] 获取 Bing 搜索建议失败:', error);
-        sendResponse({ success: false, error: error.message, data: [] });
-      });
-    return true;
-  }
+  const { type, query } = message as SuggestionRequest;
+  fetchSuggestions(suggestionEndpoints[type](query))
+    .then((data) => sendResponse({ success: true, data } satisfies SuggestionResponse))
+    .catch((error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[background] ${type} failed:`, error);
+      sendResponse({
+        success: false,
+        error: errorMessage,
+        data: [],
+      } satisfies SuggestionResponse);
+    });
 
+  // Keep the message channel open until the fetch promise settles.
   return true;
 });
